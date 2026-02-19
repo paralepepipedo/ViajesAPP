@@ -15,6 +15,14 @@ let gastosSeleccionadosPago = [];
 
 
 // ============================================
+// REDONDEO CIENTÍFICO SIN DECIMALES
+// 0.5 → 1, 1.4 → 1, 1.5 → 2, 1.6 → 2
+// ============================================
+function redondear(numero) {
+    return Math.round(parseFloat(numero) || 0);
+}
+
+// ============================================
 // INICIALIZACIÓN
 // ============================================
 document.addEventListener('DOMContentLoaded', async () => {
@@ -534,6 +542,8 @@ function renderizarResumen() {
             ? ((rp.totalDesembolsado / totalDesembolsadoViaje) * 100).toFixed(1)
             : '0.0';
 
+        // Mostrar "Debe recibir" como créditos brutos pendientes (sin descontar deudas propias)
+        // Mostrar "Debe pagar" como deudas brutas pendientes (sin descontar créditos)
         html += `
             <div class="resumen-card">
                 <div class="resumen-header">
@@ -545,11 +555,18 @@ function renderizarResumen() {
                     <div class="resumen-icon">💳</div>
                 </div>
                 <div class="resumen-balance">
-                    <span class="balance-label">${esAcreedor ? 'Debe recibir:' : 'Debe pagar:'}</span>
-                    <span class="balance-monto ${balanceClase}">$${formatearNumero(Math.abs(saldoPendienteNeto))}</span>
-                    <span class="balance-porcentaje positivo">
-                        📊 ${pctParticipacion}%
-                    </span>
+                    ${creditosPendientes > 0 ? `
+                    <span class="balance-label">Debe recibir:</span>
+                    <span class="balance-monto balance-positivo">$${formatearNumero(creditosPendientes)}</span>
+                    ` : ''}
+                    ${deudasPendientes > 0 ? `
+                    <span class="balance-label" style="margin-left:${creditosPendientes > 0 ? '0.5rem' : '0'}">Debe pagar:</span>
+                    <span class="balance-monto balance-negativo">$${formatearNumero(deudasPendientes)}</span>
+                    ` : ''}
+                    ${creditosPendientes === 0 && deudasPendientes === 0 ? `
+                    <span class="balance-label">✅ Al día</span>
+                    ` : ''}
+                    
                 </div>
             </div>
         `;
@@ -1214,7 +1231,7 @@ function obtenerDivisionDetalle(tipoDivision, montoCLP) {
                 return null;
             }
 
-            const montoPorPersona = montoCLP / checkboxes.length;
+            const montoPorPersona = redondear(montoCLP / checkboxes.length);
             checkboxes.forEach(cb => {
                 detalle.participantes[cb.value] = montoPorPersona;
             });
@@ -1940,21 +1957,20 @@ function exportarExcel() {
     const resumenParticipantes = calcularResumenParticipantes(gastosData);
     const datosDeudas = resumenParticipantes.map(rp => ({
         'Participante': rp.nombre,
-        'Total Pagado CLP': rp.totalPagado,
-        'Total Adeudado CLP': rp.totalDebeReal,
-        'Balance CLP': rp.balance,
+        'Total Pagado CLP': redondear(rp.totalPagado),
+        'Total Adeudado CLP': redondear(rp.totalDebeReal),
+        'Balance CLP': redondear(rp.balance),
         'Estado': rp.balance >= 0 ? 'Debe recibir' : 'Debe pagar'
     }));
     const wsDeudas = XLSX.utils.json_to_sheet(datosDeudas);
     wsDeudas['!cols'] = [{ wch: 20 }, { wch: 18 }, { wch: 20 }, { wch: 15 }, { wch: 15 }];
     XLSX.utils.book_append_sheet(wb, wsDeudas, 'Resumen de Deudas');
 
-    // HOJA 4 NUEVA: DETALLE DE DEUDAS ENTRE PARTICIPANTES
+    // HOJA 4: DETALLE DE DEUDAS ENTRE PARTICIPANTES (todos, no solo deudores)
     const datosDetalleDeudas = [];
 
     resumenParticipantes.forEach(rp => {
-        if (rp.balance >= 0) return; // Solo deudores
-
+        // Incluir TODOS los participantes, no solo los que tienen balance negativo
         participantes.forEach(acreedor => {
             if (acreedor.id === rp.id) return;
             const detalle = calcularDetalleDeudaEntre(rp.id, acreedor.id);
@@ -1985,7 +2001,7 @@ function exportarExcel() {
                     'Fecha': formatearFechaLocal(gasto.fecha),
                     'Descripción': gasto.descripcion,
                     'Categoría': gasto.categoria,
-                    'Monto Parte CLP': montoDeuda
+                    'Monto Parte CLP': redondear(montoDeuda)
                 });
             });
 
@@ -1997,7 +2013,7 @@ function exportarExcel() {
                     'Fecha': '',
                     'Descripción': 'Pagos ya realizados',
                     'Categoría': '',
-                    'Monto Parte CLP': -pagosRealizados
+                    'Monto Parte CLP': -redondear(pagosRealizados)
                 });
             }
 
@@ -2008,7 +2024,7 @@ function exportarExcel() {
                 'Fecha': '',
                 'Descripción': 'TOTAL ADEUDADO',
                 'Categoría': '',
-                'Monto Parte CLP': totalNeto
+                'Monto Parte CLP': redondear(totalNeto)
             });
 
             // Línea en blanco separadora
@@ -2026,6 +2042,89 @@ function exportarExcel() {
     ];
     XLSX.utils.book_append_sheet(wb, wsDetalleDeudas, 'Detalle Deudas');
 
+    // ============================================
+    // HOJA 5: DESGLOSE POR PARTICIPANTE
+    // Una línea por cada gasto con el monto que le corresponde a cada uno
+    // ============================================
+    const datosDesglose = [];
+
+    participantes.forEach(participante => {
+        // Encabezado de participante
+        datosDesglose.push({
+            'Participante': `=== ${participante.nombre.toUpperCase()} ===`,
+            'Rol': '',
+            'Fecha': '',
+            'Descripción': '',
+            'Categoría': '',
+            'Pagado Por': '',
+            'Monto Total Gasto CLP': '',
+            'Mi Parte CLP': ''
+        });
+
+        let totalMiParte = 0;
+        let totalPague = 0;
+
+        gastosData.forEach(gasto => {
+            const divisionDetalle = gasto.division_detalle || {};
+            const participantesGasto = divisionDetalle.participantes || {};
+            const miParte = parseFloat(participantesGasto[participante.id] || 0);
+            const yoPague = gasto.pagado_por_id === participante.id;
+
+            // Solo incluir si participa en el gasto
+            if (miParte === 0 && !yoPague) return;
+
+            const pagadoPor = participantes.find(p => p.id === gasto.pagado_por_id);
+            const rol = yoPague ? 'Pagué yo' : 'Participé';
+
+            datosDesglose.push({
+                'Participante': participante.nombre,
+                'Rol': rol,
+                'Fecha': formatearFechaLocal(gasto.fecha),
+                'Descripción': gasto.descripcion,
+                'Categoría': gasto.categoria,
+                'Pagado Por': pagadoPor?.nombre || 'Desconocido',
+                'Monto Total Gasto CLP': redondear(gasto.monto_clp),
+                'Mi Parte CLP': redondear(miParte)
+            });
+
+            totalMiParte += miParte;
+            if (yoPague) totalPague += parseFloat(gasto.monto_clp || 0);
+        });
+
+        // Totales del participante
+        datosDesglose.push({
+            'Participante': participante.nombre,
+            'Rol': 'TOTAL PARTICIPÉ',
+            'Fecha': '',
+            'Descripción': '',
+            'Categoría': '',
+            'Pagado Por': '',
+            'Monto Total Gasto CLP': '',
+            'Mi Parte CLP': redondear(totalMiParte)
+        });
+        datosDesglose.push({
+            'Participante': participante.nombre,
+            'Rol': 'TOTAL PAGUÉ',
+            'Fecha': '',
+            'Descripción': '',
+            'Categoría': '',
+            'Pagado Por': '',
+            'Monto Total Gasto CLP': redondear(totalPague),
+            'Mi Parte CLP': ''
+        });
+        datosDesglose.push({
+            'Participante': '', 'Rol': '', 'Fecha': '', 'Descripción': '',
+            'Categoría': '', 'Pagado Por': '', 'Monto Total Gasto CLP': '', 'Mi Parte CLP': ''
+        });
+    });
+
+    const wsDesglose = XLSX.utils.json_to_sheet(datosDesglose);
+    wsDesglose['!cols'] = [
+        { wch: 18 }, { wch: 14 }, { wch: 12 }, { wch: 30 },
+        { wch: 15 }, { wch: 18 }, { wch: 22 }, { wch: 16 }
+    ];
+    XLSX.utils.book_append_sheet(wb, wsDesglose, 'Desglose por Participante');
+
 
     // ============================================
     // HOJA 4: PAGOS REALIZADOS
@@ -2039,8 +2138,12 @@ function exportarExcel() {
                 'Fecha': formatearFechaLocal(pago.fecha),
                 'Pagador': pagador?.nombre || 'Desconocido',
                 'Receptor': receptor?.nombre || 'Desconocido',
-                'Monto (CLP)': pago.monto_clp,
-                'Nota': pago.nota || ''
+                'Monto (CLP)': redondear(pago.monto_clp),
+                'Nota': (() => {
+                    if (!pago.nota) return '';
+                    try { const p = JSON.parse(pago.nota); return p.gastos_ids ? `Gastos saldados: ${p.gastos_ids.length}` : pago.nota; }
+                    catch (e) { return pago.nota; }
+                })()
             };
         });
 
@@ -2153,7 +2256,7 @@ function formatearFechaLocal(fechaStr) {
 }
 
 function formatearNumero(numero) {
-    return parseFloat(numero).toLocaleString('es-CL', {
+    return redondear(numero).toLocaleString('es-CL', {
         minimumFractionDigits: 0,
         maximumFractionDigits: 0
     });
