@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Mis Viajes</title>
+    <link rel="stylesheet" href="../components/header/header.css">
+    <link rel="stylesheet" href="dashboard.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+
+<body>
+    <!-- Header Global -->
+    <div id="globalHeader"></div>
+
+    <!-- Banner offline -->
+    <div class="offline-banner" id="offlineBanner">
+        <span class="offline-icon">📡</span>
+        <p>Modo offline - Los cambios se sincronizarán cuando tengas conexión</p>
+    </div>
+
+    <div class="dashboard-container">
+        <!-- Hero con info del viaje -->
+        <div class="dashboard-hero" id="dashboardHero">
+            <!-- Se llenará dinámicamente -->
+        </div>
+
+        <!-- Sección de accesos rápidos (MOVIDO AQUÍ) -->
+        <div class="quick-actions">
+            <h2 class="section-title">⚡ Accesos Rápidos</h2>
+            <div class="actions-grid" id="actionsGrid">
+                <!-- Se llenará dinámicamente -->
+            </div>
+        </div>
+
+        <!-- Grid de estadísticas -->
+        <div class="stats-grid" id="statsGrid">
+            <!-- Se llenará dinámicamente -->
+        </div>
+
+        <!-- Checklist de preparación -->
+        <div class="checklist-section" id="checklistSection">
+            <h2 class="section-title">📋 Checklist de Preparación</h2>
+            <div class="checklist-container" id="checklistContainer">
+                <!-- Se llenará dinámicamente -->
+            </div>
+        </div>
+
+        <!-- Próximas actividades -->
+        <div class="upcoming-section" id="upcomingSection">
+            <h2 class="section-title">📅 Próximas Actividades</h2>
+            <div class="upcoming-container" id="upcomingContainer">
+                <!-- Se llenará dinámicamente -->
+            </div>
+        </div>
+
+        <!-- Últimos gastos -->
+        <div class="recent-expenses-section">
+            <h2 class="section-title">💰 Últimos Gastos</h2>
+            <div class="expenses-container" id="expensesContainer">
+                <!-- Se llenará dinámicamente -->
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Loading -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+        <p>Cargando dashboard...</p>
+    </div>
+
+    <script src="../config.js"></script>
+    <script src="../components/header/header.js"></script>
+    <script src="dashboard.js"></script>
+</body>
+
+</html>

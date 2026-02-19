@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gastos - Gestor de Viajes</title>
+    <link rel="stylesheet" href="../components/header/header.css">
+    <link rel="stylesheet" href="gastos.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+
+<body>
+    <!-- Header Global -->
+    <div id="globalHeader"></div>
+
+    <!-- Banner offline -->
+    <div id="offlineBanner" class="offline-banner">
+        ⚠️ Modo offline - Los cambios se sincronizarán cuando tengas conexión
+    </div>
+
+    <!-- Contenedor principal -->
+    <main class="main-content">
+
+
+        <!-- Header con resumen -->
+        <div class="gastos-header">
+            <div class="header-title">
+                <h1>💳 Gestión de Gastos</h1>
+                <p id="viajeNombre">Cargando...</p>
+            </div>
+            <button class="btn-primary btn-desktop" id="btnNuevoGastoDesktop">
+                + Nuevo Gasto
+            </button>
+        </div>
+
+        <!-- Resumen de gastos -->
+        <div class="resumen-header">
+            <h2 class="section-title">📊 Resumen de Gastos</h2>
+            <button class="btn-secondary" id="btnConfigurarPresupuestos">
+                ⚙️ Configurar Presupuestos
+            </button>
+        </div>
+        <div class="resumen-grid" id="resumenGrid">
+            <!-- Se llenará dinámicamente -->
+        </div>
+
+        <!-- Controles y filtros -->
+        <div class="controles-gastos">
+            <div class="filtros-row">
+                <div class="search-box">
+                    <input type="text" id="buscarGasto" placeholder="🔍 Buscar por descripción...">
+                </div>
+
+                <select id="filtroCategoria">
+                    <option value="todas">Todas las categorías</option>
+                    <option value="Alojamiento">🏨 Alojamiento</option>
+                    <option value="Transporte">✈️ Vuelos</option>
+                    <option value="Transporte">🚗 Transporte</option>
+                    <option value="Comida">🍽️ Comida</option>
+                    <option value="Actividades">🎭 Actividades</option>
+                    <option value="Compras">🛍️ Compras</option>
+                    <option value="Souvenir">📦 Souvenir</option>
+                </select>
+
+                <select id="filtroParticipante">
+                    <option value="todos">Todos los participantes</option>
+                    <!-- Se llenará dinámicamente -->
+                </select>
+
+                <input type="date" id="filtroFecha" placeholder="Fecha">
+            </div>
+        </div>
+
+        <!-- Lista de gastos -->
+        <div class="gastos-lista" id="gastosLista">
+            <!-- Se llenará dinámicamente -->
+        </div>
+
+        <!-- Loading -->
+        <div class="loading-container" id="loadingGastos" style="display: none;">
+            <div class="spinner"></div>
+            <p>Cargando gastos...</p>
+        </div>
+
+        <!-- Estado vacío -->
+        <div class="estado-vacio" id="estadoVacio" style="display: none;">
+            <div class="empty-icon">💸</div>
+            <h2>No hay gastos registrados</h2>
+            <p>Comienza agregando tu primer gasto del viaje</p>
+            <button class="btn-primary" onclick="document.getElementById('btnNuevoGastoDesktop').click()">
+                + Agregar Gasto
+            </button>
+        </div>
+
+        <!-- Resumen de deudas -->
+        <div class="deudas-resumen-section" id="deudasResumenSection" style="display: none;">
+            <div class="section-header">
+                <h2 class="section-title">💰 Resumen de Deudas</h2>
+                <div class="section-actions">
+                    <button class="btn-secondary" id="btnRegistrarPago">
+                        💸 Registrar Pago
+                    </button>
+                    <button class="btn-secondary" id="btnExportarExcel">
+                        📊 Exportar Excel
+                    </button>
+                </div>
+            </div>
+            <div class="deudas-tabla-container">
+                <table class="deudas-tabla" id="deudasTabla">
+                    <!-- Se llenará dinámicamente -->
+                </table>
+            </div>
+        </div>
+
+        </div>
+
+        <!-- Botón flotante (mobile) -->
+        <button class="btn-floating" id="btnNuevoGastoMobile">
+            +
+        </button>
+
+        <!-- Modal Nuevo/Editar Gasto -->
+        <div class="modal" id="modalGasto">
+            <div class="modal-content modal-gasto">
+                <div class="modal-header">
+                    <h3 id="modalGastoTitulo">Agregar Gasto</h3>
+                    <button class="modal-close" id="closeModalGasto">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <form id="formGasto" autocomplete="off">
+
+                        <div class="form-group">
+                            <label for="gastoDescripcion">Descripción *</label>
+                            <input type="text" id="gastoDescripcion" required placeholder="Ej: Taxi al aeropuerto"
+                                autocomplete="off">
+                        </div>
+
+                        <div class="form-row-2">
+                            <div class="form-group">
+                                <label for="gastoMonto">Monto *</label>
+                                <input type="number" id="gastoMonto" step="0.01" required placeholder="0.00"
+                                    autocomplete="off">
+                                <small class="conversion-hint" id="conversionHint" style="display: none;">
+                                    ≈ <span id="conversionMonto">$0</span> CLP
+                                </small>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="gastoMoneda">Moneda *</label>
+                                <select id="gastoMoneda" required autocomplete="off">
+                                    <!-- Se llenará dinámicamente -->
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-row-2">
+                            <div class="form-group">
+                                <label for="gastoFecha">Fecha *</label>
+                                <input type="date" id="gastoFecha" required autocomplete="off">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="gastoCategoria">Categoría *</label>
+                                <select id="gastoCategoria" required autocomplete="off">
+                                    <option value="">Seleccionar...</option>
+                                    <option value="Alojamiento">🏨 Alojamiento</option>
+                                    <option value="Transporte">✈️ Vuelos</option>
+                                    <option value="Uber">🚗 UBER</option>
+                                    <option value="Comida">🍽️ Comida</option>
+                                    <option value="Actividades">🎭 Actividades</option>
+                                    <option value="Compras">🛍️ Compras</option>
+                                    <option value="Souvenir">📦 Souvenir</option>
+                                </select>
+                            </div>
+                        </div>
+
+
+
+                        <div class="form-group">
+                            <label for="gastoPagadoPor">Quién pagó *</label>
+                            <select id="gastoPagadoPor" required>
+                                <!-- Se llenará dinámicamente -->
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>¿Cómo se divide este gasto?</label>
+                            <div class="division-tabs">
+                                <button type="button" class="division-tab active" data-tipo="equitativa">
+                                    👥 Entre todos
+                                </button>
+                                <button type="button" class="division-tab" data-tipo="personalizada">
+                                    ✋ Personalizado
+                                </button>
+                                <button type="button" class="division-tab" data-tipo="individual">
+                                    🙋 Solo quien pagó
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Contenedor para división equitativa -->
+                        <div id="divisionEquitativaContainer" class="division-container active">
+                            <p class="division-hint">Selecciona quiénes comparten este gasto:</p>
+                            <div id="divisionEquitativaLista">
+                                <!-- Se llenará dinámicamente -->
+                            </div>
+                        </div>
+
+                        <!-- Contenedor para división personalizada -->
+                        <div id="divisionPersonalizadaContainer" class="division-container">
+                            <p class="division-hint">Ingresa montos o porcentajes por participante:</p>
+                            <div id="divisionPersonalizadaLista">
+                                <!-- Se llenará dinámicamente -->
+                            </div>
+                        </div>
+
+                        <!-- Contenedor para gasto individual -->
+                        <div id="divisionIndividualContainer" class="division-container">
+                            <p class="division-hint">Este gasto es solo para quien pagó</p>
+                        </div>
+
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" id="btnCancelarGasto">Cancelar</button>
+                    <button type="submit" form="formGasto" class="btn-primary" id="btnGuardarGasto">Guardar
+                        Gasto</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Configurar Presupuestos -->
+        <div class="modal" id="modalPresupuestos">
+            <div class="modal-content modal-large">
+                <div class="modal-header">
+                    <h3>⚙️ Configurar Presupuestos</h3>
+                    <button class="modal-close" id="closeModalPresupuestos">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <p class="modal-description">Asigna presupuesto a cada categoría de gastos:</p>
+                    <div id="presupuestosLista">
+                        <!-- Se llenará dinámicamente -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" id="btnCancelarPresupuestos">Cancelar</button>
+                    <button type="button" class="btn-primary" id="btnGuardarPresupuestos">Guardar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Registrar Pago -->
+        <div class="modal" id="modalPago">
+            <div class="modal-content modal-small">
+                <div class="modal-header">
+                    <h3>💸 Registrar Pago</h3>
+                    <button class="modal-close" id="closeModalPago">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <form id="formPago" autocomplete="off">
+                        <div class="form-group">
+                            <label for="pagoPagador">¿Quién pagará su deuda? *</label>
+                            <select id="pagoPagador" required autocomplete="off">
+                                <!-- Se llenará dinámicamente -->
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="pagoReceptor">¿A quién pagará? *</label>
+                            <select id="pagoReceptor" required autocomplete="off">
+                                <!-- Se llenará dinámicamente -->
+                            </select>
+                        </div>
+
+                        <button type="button" class="btn-que-pagara" id="btnQuePagara">
+                            📋 ¿Qué pagará?
+                        </button>
+
+                        <div class="form-group">
+                            <label for="pagoMonto">Monto a pagar (CLP) *</label>
+                            <input type="number" id="pagoMonto" step="0.01" required placeholder="0.00"
+                                autocomplete="off">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="pagoFecha">Fecha del pago</label>
+                            <input type="date" id="pagoFecha" required autocomplete="off">
+                        </div>
+
+                        <div class="modal-footer"
+                            style="padding: 1rem 0 0 0; border-top: 2px solid var(--border); display: flex; justify-content: flex-end; gap: 0.75rem;">
+                            <button type="button" class="btn-secondary" id="btnCancelarPago">Cancelar</button>
+                            <button type="submit" class="btn-primary" id="btnGuardarPago">Registrar Pago</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Modal Popup "¿Qué pagará?" -->
+        <div class="modal" id="modalQuePagara">
+            <div class="modal-content modal-popup">
+                <div class="modal-header">
+                    <h3>📋 Selecciona qué gastos pagará</h3>
+                    <button class="modal-close" id="closeModalQuePagara">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div id="quePagaraInfo" style="margin-bottom: 1rem; color: var(--text-gray);"></div>
+                    <div id="quePagaraLista">
+                        <!-- Se llenará dinámicamente -->
+                    </div>
+                    <div class="deuda-total-seleccionado">
+                        Total seleccionado: <strong id="totalSeleccionado">$0</strong>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" id="btnCancelarQuePagara">Cancelar</button>
+                    <button type="button" class="btn-primary" id="btnConfirmarQuePagara">Confirmar</button>
+                </div>
+            </div>
+        </div>
+        <!-- Modal Confirmar Eliminar Gasto -->
+        <div class="modal" id="modalEliminar">
+            <div class="modal-content modal-small">
+                <div class="modal-header">
+                    <h3>🗑️ Eliminar Gasto</h3>
+                    <button class="modal-close" id="closeModalEliminar">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <p>¿Estás seguro de que deseas eliminar este gasto? Esta acción no se puede deshacer.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" id="btnCancelarEliminar">Cancelar</button>
+                    <button type="button" class="btn-danger" id="btnConfirmarEliminar">Eliminar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading Overlay -->
+        <div class="loading-overlay" id="loadingOverlay">
+            <div class="spinner"></div>
+            <p>Procesando...</p>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+        <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+        <script src="../config.js"></script>
+        <script src="../components/header/header.js"></script>
+        <script src="gastos.js"></script>
+</body>
+
+</html>

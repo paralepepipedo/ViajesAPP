@@ -1,0 +1,1574 @@
+/* ============================================
+   VARIABLES
+   ============================================ */
+:root {
+    --primary: #667eea;
+    --primary-dark: #5568d3;
+    --secondary: #764ba2;
+    --success: #10b981;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+    --info: #3b82f6;
+
+    --bg-light: #f9fafb;
+    --bg-white: #ffffff;
+    --text-dark: #1f2937;
+    --text-gray: #6b7280;
+    --border: #e5e7eb;
+
+    --radius: 12px;
+    --shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+    --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    padding-bottom: 5rem;
+}
+
+/* ============================================
+   OFFLINE BANNER
+   ============================================ */
+.offline-banner {
+    background: var(--warning);
+    color: white;
+    padding: 1rem;
+    text-align: center;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    box-shadow: var(--shadow);
+}
+
+.offline-banner.show {
+    display: flex;
+}
+
+.offline-icon {
+    font-size: 1.5rem;
+}
+
+/* ============================================
+   CONTAINER
+   ============================================ */
+.gastos-container {
+    max-width: 1400px;
+    margin: 2rem auto 5rem;
+    padding: 0 1.5rem;
+}
+
+/* ============================================
+   HEADER
+   ============================================ */
+.gastos-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.header-title h1 {
+    font-size: 2.5rem;
+    color: white;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.header-title p {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 1.1rem;
+}
+
+.btn-desktop {
+    display: block;
+}
+
+/* ============================================
+   RESUMEN HEADER
+   ============================================ */
+.resumen-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.section-title {
+    font-size: 1.5rem;
+    color: white;
+    margin: 0;
+}
+
+/* ============================================
+   RESUMEN GRID
+   ============================================ */
+.resumen-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.resumen-card {
+    background: white;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 1.25rem;
+    transition: all 0.3s;
+    animation: fadeIn 0.5s;
+    cursor: pointer;
+}
+
+.resumen-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lg);
+}
+
+.resumen-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.75rem;
+}
+
+.resumen-title {
+    font-size: 0.85rem;
+    color: var(--text-gray);
+    font-weight: 600;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+}
+
+.resumen-icon {
+    font-size: 2rem;
+}
+
+.resumen-monto {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: var(--text-dark);
+    line-height: 1.2;
+}
+
+.resumen-monto-clp {
+    font-size: 0.9rem;
+    color: var(--text-gray);
+    margin-top: 0.25rem;
+}
+
+.resumen-balance {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--border);
+}
+
+.balance-label {
+    font-size: 0.85rem;
+    color: var(--text-gray);
+}
+
+.balance-monto {
+    font-weight: 700;
+    font-size: 0.95rem;
+}
+
+.balance-positivo {
+    color: var(--success);
+}
+
+.balance-negativo {
+    color: var(--danger);
+}
+
+.balance-porcentaje {
+    font-size: 0.8rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-weight: 600;
+}
+
+.balance-porcentaje.positivo {
+    background: #fee2e2;
+    color: var(--danger);
+}
+
+.balance-porcentaje.negativo {
+    background: #d1fae5;
+    color: var(--success);
+}
+
+/* Ficha de presupuesto */
+.presupuesto-progress {
+    margin-top: 0.75rem;
+}
+
+.progress-info {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    margin-bottom: 0.5rem;
+}
+
+.progress-gastado {
+    color: var(--text-dark);
+    font-weight: 600;
+}
+
+.progress-total {
+    color: var(--text-gray);
+}
+
+.progress-bar-bg {
+    background: var(--bg-light);
+    height: 8px;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.progress-bar-fill {
+    height: 100%;
+    border-radius: 10px;
+    transition: width 0.5s, background 0.3s;
+}
+
+.progress-bar-fill.bajo {
+    background: var(--success);
+}
+
+.progress-bar-fill.medio {
+    background: var(--warning);
+}
+
+.progress-bar-fill.alto {
+    background: var(--danger);
+}
+
+.progress-porcentaje {
+    text-align: center;
+    font-size: 0.85rem;
+    color: var(--text-gray);
+    margin-top: 0.5rem;
+}
+
+/* ============================================
+   CONTROLES Y FILTROS
+   ============================================ */
+.controles-gastos {
+    background: white;
+    padding: 1rem;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-lg);
+    margin-bottom: 2rem;
+}
+
+.filtros-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    gap: 0.75rem;
+}
+
+.search-box {
+    width: 100%;
+}
+
+.search-box input {
+    width: 100%;
+    padding: 0.65rem 1rem;
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    font-size: 0.95rem;
+    transition: all 0.3s;
+}
+
+.search-box input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.filtros-row select,
+.filtros-row input[type="date"] {
+    width: 100%;
+    padding: 0.65rem 1rem;
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.3s;
+    background: white;
+}
+
+.filtros-row select:focus,
+.filtros-row input[type="date"]:focus {
+    outline: none;
+    border-color: var(--primary);
+}
+
+/* ============================================
+   LISTA DE GASTOS
+   ============================================ */
+.gastos-lista {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.gasto-card {
+    background: #d8e6d9;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 1.25rem;
+    transition: all 0.3s;
+    animation: fadeIn 0.5s;
+    position: relative;
+    overflow: hidden;
+}
+
+.gasto-card::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+}
+
+.gasto-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+.gasto-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.75rem;
+}
+
+.gasto-info {
+    flex: 1;
+}
+
+.gasto-descripcion {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin-bottom: 0.5rem;
+}
+
+.gasto-meta {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    font-size: 0.85rem;
+    color: var(--text-gray);
+}
+
+.gasto-meta span {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.gasto-categoria {
+    padding: 0.2rem 0.6rem;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    background: var(--bg-light);
+    color: var(--text-dark);
+}
+
+.gasto-monto {
+    text-align: right;
+}
+
+.gasto-monto-principal {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: var(--text-dark);
+    line-height: 1;
+    margin-bottom: 0.25rem;
+}
+
+.gasto-monto-convertido {
+    font-size: 0.85rem;
+    color: var(--text-gray);
+}
+
+.gasto-acciones {
+    display: flex;
+    gap: 0.25rem;
+}
+
+.btn-icon {
+    background: none;
+    border: none;
+    font-size: 1.15rem;
+    cursor: pointer;
+    padding: 0.4rem;
+    border-radius: 6px;
+    transition: all 0.3s;
+}
+
+.btn-icon:hover {
+    background: var(--bg-light);
+    transform: scale(1.1);
+}
+
+.btn-icon.edit:hover {
+    color: var(--info);
+}
+
+.btn-icon.delete:hover {
+    color: var(--danger);
+}
+
+.gasto-division {
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--border);
+}
+
+.division-titulo {
+    font-size: 0.85rem;
+    color: var(--text-gray);
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+}
+
+.division-lista {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.5rem;
+}
+
+.division-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0.75rem;
+    background: var(--bg-light);
+    border-radius: 8px;
+    font-size: 0.9rem;
+}
+
+.division-participante {
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+.division-monto {
+    color: var(--primary);
+    font-weight: 700;
+}
+
+/* ============================================
+   RESUMEN DE DEUDAS
+   ============================================ */
+.deudas-resumen-section {
+    background: white;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-lg);
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.section-header .section-title {
+    color: var(--text-dark);
+}
+
+.section-actions {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.deudas-tabla-container {
+    overflow-x: auto;
+}
+
+.deudas-tabla {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.deudas-tabla thead {
+    background: var(--bg-light);
+}
+
+.deudas-tabla th {
+    padding: 0.75rem;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-dark);
+    border-bottom: 2px solid var(--border);
+}
+
+.deudas-tabla td {
+    padding: 0.75rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.deudas-tabla tbody tr:hover {
+    background: var(--bg-light);
+}
+
+.saldo-positivo {
+    color: var(--success);
+    font-weight: 700;
+}
+
+.saldo-negativo {
+    color: var(--danger);
+    font-weight: 700;
+}
+
+.saldo-neutral {
+    color: var(--text-gray);
+}
+
+/* ============================================
+   BOTÓN FLOTANTE
+   ============================================ */
+.btn-floating {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+    color: white;
+    border: none;
+    font-size: 2rem;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
+    transition: all 0.3s;
+    z-index: 1000;
+    display: none;
+}
+
+.btn-floating:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 25px rgba(102, 126, 234, 0.5);
+}
+
+/* ============================================
+   LOADING Y ESTADOS
+   ============================================ */
+.loading-container {
+    background: white;
+    padding: 3rem 2rem;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-lg);
+    text-align: center;
+}
+
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid var(--border);
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 1rem;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.loading-container p {
+    color: var(--text-gray);
+    font-size: 1rem;
+}
+
+.estado-vacio {
+    background: white;
+    padding: 3rem 2rem;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-lg);
+    text-align: center;
+    animation: fadeIn 0.5s;
+}
+
+.empty-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+.estado-vacio h2 {
+    color: var(--text-dark);
+    margin-bottom: 0.75rem;
+}
+
+.estado-vacio p {
+    color: var(--text-gray);
+    margin-bottom: 1.5rem;
+}
+
+/* ============================================
+   BOTONES
+   ============================================ */
+.btn {
+    padding: 0.65rem 1.5rem;
+    border: none;
+    border-radius: var(--radius);
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-family: inherit;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+}
+
+.btn-secondary {
+    background: var(--bg-light);
+    color: var(--text-dark);
+    border: 2px solid var(--border);
+}
+
+.btn-secondary:hover {
+    background: var(--border);
+}
+
+.btn-danger {
+    background: var(--danger);
+    color: white;
+}
+
+.btn-danger:hover {
+    background: #dc2626;
+}
+
+/* ============================================
+   MODAL
+   ============================================ */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 10000;
+    align-items: center;
+    justify-content: center;
+    overflow-y: auto;
+    padding: 1rem;
+}
+
+.modal.active {
+    display: flex;
+}
+
+.modal-content {
+    background: white;
+    border-radius: var(--radius);
+    width: 100%;
+    max-width: 600px;
+    max-height: 90vh;
+    overflow-y: auto;
+    animation: slideUp 0.3s;
+    margin: auto;
+}
+
+.modal-gasto {
+    max-width: 550px;
+}
+
+.modal-large {
+    max-width: 800px;
+}
+
+.modal-small {
+    max-width: 450px;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(50px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.modal-header {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 2px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h3 {
+    color: var(--text-dark);
+    font-size: 1.35rem;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--text-gray);
+    transition: color 0.3s;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-close:hover {
+    color: var(--danger);
+}
+
+.modal-body {
+    padding: 1.5rem;
+}
+
+.modal-description {
+    color: var(--text-gray);
+    margin-bottom: 1.5rem;
+}
+
+.modal-footer {
+    padding: 1rem 1.5rem;
+    border-top: 2px solid var(--border);
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+}
+
+/* ============================================
+   FORMULARIO COMPACTO
+   ============================================ */
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-group label {
+    display: block;
+    font-weight: 600;
+    color: var(--text-dark);
+    margin-bottom: 0.4rem;
+    font-size: 0.9rem;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 0.6rem 0.75rem;
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    font-size: 0.95rem;
+    font-family: inherit;
+    transition: all 0.3s;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.form-row-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+}
+
+.conversion-hint {
+    display: block;
+    margin-top: 0.35rem;
+    font-size: 0.8rem;
+    color: var(--primary);
+    font-weight: 600;
+}
+
+/* ============================================
+   TABS DE DIVISIÓN
+   ============================================ */
+.division-tabs {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.division-tab {
+    padding: 0.65rem 0.75rem;
+    border: 2px solid var(--border);
+    background: white;
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.3s;
+    text-align: center;
+}
+
+.division-tab:hover {
+    border-color: var(--primary);
+    background: var(--bg-light);
+}
+
+.division-tab.active {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+    color: white;
+    border-color: var(--primary);
+}
+
+.division-container {
+    display: none;
+    margin-top: 1rem;
+}
+
+.division-container.active {
+    display: block;
+}
+
+.division-hint {
+    font-size: 0.85rem;
+    color: var(--text-gray);
+    margin-bottom: 0.75rem;
+    font-style: italic;
+}
+
+/* Checkboxes */
+.checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.6rem 0.75rem;
+    background: var(--bg-light);
+    border-radius: 8px;
+    margin-bottom: 0.4rem;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.checkbox-item:hover {
+    background: var(--border);
+}
+
+.checkbox-item input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+.checkbox-item label {
+    flex: 1;
+    cursor: pointer;
+    margin: 0;
+    font-weight: 500;
+}
+
+/* Inputs personalizados */
+.input-personalizado {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.6rem 0.75rem;
+    background: var(--bg-light);
+    border-radius: 8px;
+    margin-bottom: 0.4rem;
+}
+
+.input-personalizado label {
+    flex: 1;
+    font-weight: 600;
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+.input-personalizado input {
+    width: 110px;
+    padding: 0.4rem 0.6rem;
+    border: 2px solid var(--border);
+    border-radius: 6px;
+    font-size: 0.9rem;
+}
+
+/* ============================================
+   PRESUPUESTOS
+   ============================================ */
+#presupuestosLista {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.presupuesto-item {
+    display: grid;
+    grid-template-columns: auto 1fr auto auto;
+    gap: 0.75rem;
+    align-items: center;
+    padding: 0.75rem;
+    background: var(--bg-light);
+    border-radius: var(--radius);
+}
+
+.presupuesto-icon {
+    font-size: 1.5rem;
+}
+
+.presupuesto-nombre {
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+.presupuesto-input {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.presupuesto-input input {
+    width: 120px;
+    padding: 0.5rem;
+    border: 2px solid var(--border);
+    border-radius: 8px;
+}
+
+.presupuesto-input select {
+    width: 80px;
+    padding: 0.5rem;
+    border: 2px solid var(--border);
+    border-radius: 8px;
+}
+
+.presupuesto-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.presupuesto-toggle input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+
+/* ============================================
+   LOADING OVERLAY
+   ============================================ */
+.loading-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 20000;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.loading-overlay.active {
+    display: flex;
+}
+
+.loading-overlay p {
+    color: white;
+    font-size: 1.15rem;
+    font-weight: 600;
+}
+
+/* ============================================
+   ANIMACIONES
+   ============================================ */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ============================================
+   UTILIDADES
+   ============================================ */
+.text-danger {
+    color: var(--danger);
+}
+
+.text-gray {
+    color: var(--text-gray);
+    font-size: 0.9rem;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 768px) {
+    .gastos-container {
+        padding: 0 1rem;
+        margin-bottom: 6rem;
+    }
+
+    .gastos-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .header-title h1 {
+        font-size: 2rem;
+    }
+
+    .btn-desktop {
+        display: none;
+    }
+
+    .btn-floating {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .resumen-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .filtros-row {
+        grid-template-columns: 1fr;
+    }
+
+    .section-actions {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .section-actions button {
+        width: 100%;
+    }
+
+    .gasto-header {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .gasto-monto {
+        text-align: left;
+    }
+
+    .division-lista {
+        grid-template-columns: 1fr;
+    }
+
+    .form-row-2 {
+        grid-template-columns: 1fr;
+    }
+
+    .division-tabs {
+        grid-template-columns: 1fr;
+    }
+
+    .modal-content {
+        width: 95%;
+        margin: 1rem;
+    }
+
+    .deudas-tabla {
+        font-size: 0.85rem;
+    }
+
+    .deudas-tabla th,
+    .deudas-tabla td {
+        padding: 0.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .resumen-monto {
+        font-size: 1.5rem;
+    }
+
+    .gasto-monto-principal {
+        font-size: 1.5rem;
+    }
+}
+
+/* ============================================
+   CORRECCIONES Y MEJORAS
+   ============================================ */
+
+/* Botón Configurar Presupuestos con estilo */
+.resumen-header .btn-secondary {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+    color: white;
+    border: none;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+}
+
+.resumen-header .btn-secondary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+}
+
+/* División personalizada con monto y porcentaje */
+.input-dual {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    background: var(--bg-light);
+    border-radius: 8px;
+    margin-bottom: 0.5rem;
+}
+
+.input-dual label {
+    flex: 1;
+    font-weight: 600;
+    margin: 0;
+    font-size: 0.95rem;
+    color: var(--text-dark);
+}
+
+.input-dual-fields {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.input-dual-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.input-dual-field label {
+    font-size: 0.75rem;
+    color: var(--text-gray);
+    font-weight: 500;
+}
+
+.input-dual-field input {
+    width: 90px;
+    padding: 0.5rem;
+    border: 2px solid var(--border);
+    border-radius: 6px;
+    font-size: 0.9rem;
+    text-align: right;
+}
+
+.input-dual-field input:focus {
+    outline: none;
+    border-color: var(--primary);
+}
+
+/* Modal popup "¿Qué pagará?" */
+.modal-popup {
+    max-width: 500px;
+}
+
+.deuda-item-seleccionable {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    background: var(--bg-light);
+    border-radius: 8px;
+    margin-bottom: 0.5rem;
+    cursor: pointer;
+    transition: all 0.3s;
+    border: 2px solid transparent;
+}
+
+.deuda-item-seleccionable:hover {
+    background: var(--border);
+}
+
+.deuda-item-seleccionable.selected {
+    background: #e0e7ff;
+    border-color: var(--primary);
+}
+
+.deuda-item-seleccionable input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.deuda-item-info {
+    flex: 1;
+}
+
+.deuda-item-descripcion {
+    font-weight: 600;
+    color: var(--text-dark);
+    margin-bottom: 0.25rem;
+}
+
+.deuda-item-meta {
+    font-size: 0.85rem;
+    color: var(--text-gray);
+}
+
+.deuda-item-monto {
+    font-weight: 700;
+    color: var(--primary);
+    font-size: 1.1rem;
+}
+
+.deuda-total-seleccionado {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: var(--bg-light);
+    border-radius: 8px;
+    text-align: center;
+    font-size: 1.1rem;
+}
+
+.deuda-total-seleccionado strong {
+    color: var(--primary);
+    font-size: 1.3rem;
+}
+
+/* Botón "¿Qué pagará?" */
+.btn-que-pagara {
+    width: 100%;
+    padding: 0.75rem;
+    background: var(--bg-light);
+    border: 2px dashed var(--primary);
+    color: var(--primary);
+    border-radius: var(--radius);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin-bottom: 1rem;
+}
+
+.btn-que-pagara:hover {
+    background: #e0e7ff;
+    border-style: solid;
+}
+
+/* Botones pequeños en esquina superior derecha (mobile) */
+@media (max-width: 768px) {
+    .gasto-card {
+        position: relative;
+        padding-top: 2.5rem;
+    }
+
+    .gasto-card .gasto-acciones {
+        position: absolute;
+        top: 0.75rem;
+        right: 0.75rem;
+        gap: 0.25rem;
+    }
+
+    .gasto-card .btn-icon {
+        font-size: 1rem;
+        padding: 0.35rem;
+        background: rgba(255, 255, 255, 0.9);
+        border: 1px solid var(--border);
+    }
+
+    .gasto-header {
+        flex-direction: column;
+    }
+}
+
+/* Estado vacío en popup */
+.deudas-popup-vacio {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-gray);
+}
+
+.deudas-popup-vacio .empty-icon {
+    font-size: 3rem;
+    margin-bottom: 0.5rem;
+}
+
+/* Inputs y selects con fondo de color */
+.form-input,
+.form-select {
+    background-color: #e9d5ff;
+    /* Lila visible */
+    border: 1px solid #c084fc;
+    padding: 0.625rem;
+    border-radius: 0.5rem;
+    width: 100%;
+    font-size: 0.875rem;
+    transition: all 0.2s;
+}
+
+.form-input:focus,
+.form-select:focus {
+    outline: none;
+    border-color: #a855f7;
+    background-color: #f3e8ff;
+    box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.1);
+}
+
+/* Labels */
+.form-label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 0.375rem;
+}
+
+/* Espaciado del formulario */
+.space-y-4>*+* {
+    margin-top: 1rem;
+}
+
+/* Grid responsive */
+.grid-cols-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+}
+
+.gap-3 {
+    gap: 0.75rem;
+}
+
+/* ============================================
+   TABLA DE DEUDAS EXPANDIBLE
+   ============================================ */
+
+.deuda-fila-principal td {
+    padding: 0.75rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.deuda-fila-expandible {
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.deuda-fila-expandible:hover {
+    background: var(--bg-light);
+}
+
+.deuda-toggle-cell {
+    text-align: center;
+    width: 32px;
+}
+
+.deuda-toggle-icon {
+    font-size: 0.75rem;
+    color: var(--text-gray);
+    transition: transform 0.2s;
+}
+
+/* Panel contenedor del detalle */
+.deuda-detalle-row td {
+    padding: 0 !important;
+    border-bottom: 2px solid var(--primary) !important;
+}
+
+.deuda-detalle-cell {
+    background: var(--bg-light);
+}
+
+.deuda-panel {
+    padding: 1rem 1.5rem 1rem 2.5rem;
+    animation: fadeIn 0.2s;
+}
+
+.deuda-panel-titulo {
+    font-weight: 700;
+    color: var(--text-dark);
+    margin-bottom: 0.75rem;
+    font-size: 0.95rem;
+}
+
+/* Subtabla de acreedores/deudores */
+.deuda-subtabla {
+    width: 100%;
+    max-width: 520px;
+    border-collapse: collapse;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.deuda-subtabla thead th {
+    background: white;
+    padding: 0.5rem 0.75rem;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-dark);
+    border-bottom: 2px solid var(--border);
+}
+
+.deuda-subtabla-fila td {
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.deuda-subtabla-fila:hover td {
+    background: #fff8f0;
+}
+
+.deuda-sub-toggle {
+    text-align: right;
+    color: var(--text-gray);
+    font-size: 0.7rem;
+    width: 30px;
+}
+
+.deuda-subtabla-total td {
+    padding: 0.6rem 0.75rem;
+    border-top: 2px solid var(--border);
+    background: white;
+    font-size: 0.95rem;
+}
+
+/* Tabla de detalle por gasto */
+.deuda-gastos-detalle {
+    padding: 0.25rem 0 0.5rem 1.5rem;
+    background: #fafafa;
+}
+
+.deuda-gastos-tabla {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+}
+
+.deuda-gastos-tabla thead th {
+    padding: 0.4rem 0.75rem;
+    text-align: left;
+    color: var(--text-gray);
+    font-weight: 600;
+    border-bottom: 1px solid var(--border);
+    background: transparent;
+}
+
+.deuda-gastos-tabla tbody tr td {
+    padding: 0.4rem 0.75rem;
+    border-bottom: 1px dashed var(--border);
+    color: var(--text-dark);
+}
+
+.deuda-gastos-tabla tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.deuda-gastos-subtotal td {
+    padding: 0.45rem 0.75rem;
+    border-top: 1px solid var(--border);
+    color: var(--text-gray);
+    font-size: 0.85rem;
+}
+
+.deuda-gastos-pagos td {
+    padding: 0.4rem 0.75rem;
+    color: var(--success);
+    font-size: 0.85rem;
+}
+
+.deuda-gastos-total td {
+    padding: 0.5rem 0.75rem;
+    border-top: 2px solid var(--primary);
+    font-size: 0.9rem;
+    color: var(--text-dark);
+}
+/* ============================================
+   GASTOS SALDADOS Y BADGES
+   ============================================ */
+.gasto-saldado td {
+    opacity: 0.5;
+}
+
+.badge-pagado {
+    display: inline-block;
+    background: #dcfce7;
+    color: #16a34a;
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 1px 6px;
+    border-radius: 9999px;
+    margin-left: 6px;
+    border: 1px solid #bbf7d0;
+}
+
+/* Resumen de gastos seleccionados en modal pago */
+.gastos-seleccionados-lista {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    margin-top: 0.5rem;
+    font-size: 0.85rem;
+}
+
+.gastos-seleccionados-titulo {
+    font-weight: 600;
+    color: #16a34a;
+    margin-bottom: 0.4rem;
+}
+
+.gastos-seleccionado-item {
+    color: #374151;
+    padding: 1px 0;
+}

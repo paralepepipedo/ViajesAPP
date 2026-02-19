@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documentos - Gestor de Viajes</title>
+    <link rel="stylesheet" href="../components/header/header.css">
+    <link rel="stylesheet" href="documentos.css">
+</head>
+
+<body>
+    <!-- Header Global -->
+    <div id="globalHeader"></div>
+
+    <!-- Banner offline -->
+    <div id="offlineBanner" class="offline-banner">
+        ⚠️ Modo offline - Los cambios se sincronizarán cuando tengas conexión
+    </div>
+
+    <!-- Contenedor principal -->
+    <main class="main-content">
+
+        <!-- Toolbar superior -->
+        <div class="docs-toolbar">
+            <div class="toolbar-left">
+                <h2 class="section-title">📁 Documentos del Viaje</h2>
+            </div>
+            <div class="toolbar-right">
+                <button class="btn-primary" id="btnAgregarDoc">
+                    <span>+</span> Agregar Documento
+                </button>
+            </div>
+        </div>
+
+        <!-- Filtros por tipo -->
+        <div class="filter-bar">
+            <button class="filter-btn active" data-tipo="todos">Todos</button>
+            <button class="filter-btn" data-tipo="pasaje_avion">✈️ Vuelos</button>
+            <button class="filter-btn" data-tipo="tarjeta_embarque">🎫 Embarque</button>
+            <button class="filter-btn" data-tipo="pasaje_bus">🚌 Bus</button>
+            <button class="filter-btn" data-tipo="entrada">🎟️ Entradas</button>
+            <button class="filter-btn" data-tipo="alojamiento">🏨 Alojamiento</button>
+            <button class="filter-btn" data-tipo="seguro">🛡️ Seguro</button>
+            <button class="filter-btn" data-tipo="crucero">🚢 Crucero</button>
+            <button class="filter-btn" data-tipo="otro">📄 Otros</button>
+        </div>
+
+        <!-- Grid de documentos -->
+        <div class="docs-grid" id="docsGrid">
+            <div class="empty-state" id="emptyState">
+                <div class="empty-icon">📂</div>
+                <p>No hay documentos cargados aún</p>
+                <p class="empty-sub">Agrega pasajes, entradas, reservas y más</p>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Botón flotante -->
+    <button class="fab" id="fabAgregarDoc" title="Agregar documento">+</button>
+
+    <!-- ======================================================
+         MODAL AGREGAR / EDITAR DOCUMENTO
+    ====================================================== -->
+    <div class="modal-overlay" id="modalDocumento">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3 id="modalDocTitulo">Agregar Documento</h3>
+                <button class="modal-close" id="btnCerrarModal">✕</button>
+            </div>
+
+            <!-- Selector de tipo -->
+            <div class="tipo-selector" id="tipoSelector">
+                <p class="tipo-label">¿Qué tipo de documento vas a agregar?</p>
+                <div class="tipo-grid">
+                    <button class="tipo-btn" data-tipo="pasaje_avion">✈️<span>Pasaje de Avión</span></button>
+                    <button class="tipo-btn" data-tipo="tarjeta_embarque">🎫<span>Tarjeta de Embarque</span></button>
+                    <button class="tipo-btn" data-tipo="pasaje_bus">🚌<span>Pasaje de Bus</span></button>
+                    <button class="tipo-btn" data-tipo="entrada">🎟️<span>Boleto / Entrada</span></button>
+                    <button class="tipo-btn" data-tipo="alojamiento">🏨<span>Reserva Alojamiento</span></button>
+                    <button class="tipo-btn" data-tipo="seguro">🛡️<span>Seguro de Viaje</span></button>
+                    <button class="tipo-btn" data-tipo="crucero">🚢<span>Doc. Crucero</span></button>
+                    <button class="tipo-btn" data-tipo="otro">📄<span>Otro</span></button>
+                </div>
+            </div>
+
+            <!-- Formulario dinámico -->
+            <form id="formDocumento" class="doc-form" style="display:none;">
+                <input type="hidden" id="docId">
+                <input type="hidden" id="docTipo">
+
+                <div class="form-group">
+                    <label for="docNombre">Nombre del documento *</label>
+                    <input type="text" id="docNombre" placeholder="Ej: Vuelo SCL → GRU" required>
+                </div>
+
+                <!-- === PASAJE DE AVIÓN === -->
+                <div class="campos-tipo" data-tipo="pasaje_avion">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Aerolínea</label>
+                            <input type="text" id="avionAerolinea" placeholder="LATAM, Gol...">
+                        </div>
+                        <div class="form-group">
+                            <label>N° Vuelo</label>
+                            <input type="text" id="avionNumVuelo" placeholder="LA501">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>N° Reserva</label>
+                            <input type="text" id="avionReserva" placeholder="ABC123">
+                        </div>
+                        <div class="form-group">
+                            <label>Asiento</label>
+                            <input type="text" id="avionAsiento" placeholder="12A">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Origen</label>
+                            <input type="text" id="avionOrigen" placeholder="Santiago (SCL)">
+                        </div>
+                        <div class="form-group">
+                            <label>Destino</label>
+                            <input type="text" id="avionDestino" placeholder="São Paulo (GRU)">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Fecha y Hora Salida</label>
+                            <input type="datetime-local" id="avionSalida">
+                        </div>
+                        <div class="form-group">
+                            <label>Fecha y Hora Llegada</label>
+                            <input type="datetime-local" id="avionLlegada">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Terminal</label>
+                            <input type="text" id="avionTerminal" placeholder="Terminal 2">
+                        </div>
+                        <div class="form-group">
+                            <label>Puerta</label>
+                            <input type="text" id="avionPuerta" placeholder="B14">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Equipaje permitido</label>
+                        <input type="text" id="avionEquipaje" placeholder="23kg bodega + 10kg cabina">
+                    </div>
+                </div>
+
+                <!-- === TARJETA DE EMBARQUE === -->
+                <div class="campos-tipo" data-tipo="tarjeta_embarque">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Aerolínea</label>
+                            <input type="text" id="embAerolinea" placeholder="LATAM">
+                        </div>
+                        <div class="form-group">
+                            <label>N° Vuelo</label>
+                            <input type="text" id="embNumVuelo" placeholder="LA501">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Pasajero</label>
+                            <input type="text" id="embPasajero" placeholder="APELLIDO/NOMBRE">
+                        </div>
+                        <div class="form-group">
+                            <label>Asiento</label>
+                            <input type="text" id="embAsiento" placeholder="12A">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Puerta</label>
+                            <input type="text" id="embPuerta" placeholder="B14">
+                        </div>
+                        <div class="form-group">
+                            <label>Hora de Embarque</label>
+                            <input type="time" id="embHora">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- === PASAJE DE BUS === -->
+                <div class="campos-tipo" data-tipo="pasaje_bus">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Empresa</label>
+                            <input type="text" id="busEmpresa" placeholder="Turbus, Pullman...">
+                        </div>
+                        <div class="form-group">
+                            <label>N° Servicio</label>
+                            <input type="text" id="busServicio" placeholder="8502">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Origen</label>
+                            <input type="text" id="busOrigen" placeholder="Santiago">
+                        </div>
+                        <div class="form-group">
+                            <label>Destino</label>
+                            <input type="text" id="busDestino" placeholder="Valparaíso">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Fecha y Hora</label>
+                            <input type="datetime-local" id="busFecha">
+                        </div>
+                        <div class="form-group">
+                            <label>Asiento</label>
+                            <input type="text" id="busAsiento" placeholder="12">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Andén / Terminal</label>
+                        <input type="text" id="busAnden" placeholder="Andén 5, Terminal Alameda">
+                    </div>
+                </div>
+
+                <!-- === BOLETO / ENTRADA === -->
+                <div class="campos-tipo" data-tipo="entrada">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Atracción / Evento</label>
+                            <input type="text" id="entradaNombre" placeholder="Parque Nacional Iguazú">
+                        </div>
+                        <div class="form-group">
+                            <label>N° Ticket</label>
+                            <input type="text" id="entradaTicket" placeholder="TK-00123">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Fecha</label>
+                            <input type="date" id="entradaFecha">
+                        </div>
+                        <div class="form-group">
+                            <label>Hora</label>
+                            <input type="time" id="entradaHora">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Lugar / Dirección</label>
+                        <input type="text" id="entradaLugar" placeholder="Av. Principal 123">
+                    </div>
+                </div>
+
+                <!-- === RESERVA ALOJAMIENTO === -->
+                <div class="campos-tipo" data-tipo="alojamiento">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Hotel / Alojamiento</label>
+                            <input type="text" id="aloNombre" placeholder="Hotel Copacabana Palace">
+                        </div>
+                        <div class="form-group">
+                            <label>N° Reserva</label>
+                            <input type="text" id="aloReserva" placeholder="RSV-4582">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Check-in</label>
+                            <input type="datetime-local" id="aloCheckin">
+                        </div>
+                        <div class="form-group">
+                            <label>Check-out</label>
+                            <input type="datetime-local" id="aloCheckout">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Dirección</label>
+                        <input type="text" id="aloDireccion" placeholder="Av. Atlântica 1702, Río de Janeiro">
+                    </div>
+                </div>
+
+                <!-- === SEGURO DE VIAJE === -->
+                <div class="campos-tipo" data-tipo="seguro">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Aseguradora</label>
+                            <input type="text" id="segAseguradora" placeholder="Assist Card">
+                        </div>
+                        <div class="form-group">
+                            <label>N° Póliza</label>
+                            <input type="text" id="segPoliza" placeholder="POL-00456">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Vigencia desde</label>
+                            <input type="date" id="segDesde">
+                        </div>
+                        <div class="form-group">
+                            <label>Vigencia hasta</label>
+                            <input type="date" id="segHasta">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Teléfono de Emergencias</label>
+                        <input type="tel" id="segTelefono" placeholder="+1-800-123-456">
+                    </div>
+                </div>
+
+                <!-- === DOCUMENTO CRUCERO === -->
+                <div class="campos-tipo" data-tipo="crucero">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Naviera</label>
+                            <input type="text" id="crucNaviera" placeholder="Royal Caribbean">
+                        </div>
+                        <div class="form-group">
+                            <label>N° Reserva</label>
+                            <input type="text" id="crucReserva" placeholder="CRU-7890">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Nombre del Barco</label>
+                            <input type="text" id="crucBarco" placeholder="Wonder of the Seas">
+                        </div>
+                        <div class="form-group">
+                            <label>Fecha de Embarque</label>
+                            <input type="datetime-local" id="crucEmbarque">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- === OTRO === -->
+                <div class="campos-tipo" data-tipo="otro">
+                    <div class="form-group">
+                        <label>Descripción</label>
+                        <textarea id="otroDescripcion" rows="3" placeholder="Describe brevemente este documento..."></textarea>
+                    </div>
+                </div>
+
+                <!-- Participantes asociados -->
+                <div class="form-group">
+                    <label>Participante(s) asociado(s)</label>
+                    <div id="participantesCheck" class="checkbox-group"></div>
+                </div>
+
+                <!-- Notas -->
+                <div class="form-group">
+                    <label>Notas adicionales</label>
+                    <textarea id="docNotas" rows="2" placeholder="Información extra..."></textarea>
+                </div>
+
+                <!-- Subida de archivo -->
+                <div class="form-group upload-area" id="uploadArea">
+                    <div class="upload-placeholder" id="uploadPlaceholder">
+                        <span class="upload-icon">📎</span>
+                        <p>Arrastra tu archivo aquí o <strong>haz clic para subir</strong></p>
+                        <p class="upload-sub">PDF, JPG, PNG — Máx. 10 MB</p>
+                        <input type="file" id="docArchivo" accept=".pdf,.jpg,.jpeg,.png" hidden>
+                    </div>
+                    <div class="upload-preview" id="uploadPreview" style="display:none;">
+                        <span class="preview-icon" id="previewIcon">📄</span>
+                        <span class="preview-name" id="previewName"></span>
+                        <button type="button" class="btn-remove-file" id="btnRemoveFile">✕</button>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary" id="btnCancelarForm">Cancelar</button>
+                    <button type="submit" class="btn-primary" id="btnGuardarDoc">💾 Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ======================================================
+         MODAL VISOR DE DOCUMENTO
+    ====================================================== -->
+    <div class="modal-overlay" id="modalVisor">
+        <div class="modal-container modal-visor">
+            <div class="modal-header">
+                <h3 id="visorTitulo">Vista previa</h3>
+                <div class="visor-actions">
+                    <a id="visorDescargar" href="#" target="_blank" class="btn-secondary btn-sm">⬇️ Descargar</a>
+                    <button class="modal-close" id="btnCerrarVisor">✕</button>
+                </div>
+            </div>
+            <div class="visor-content" id="visorContent"></div>
+        </div>
+    </div>
+
+    <!-- ===================================================
+         SCRIPTS — ORDEN IMPORTANTE:
+         1. supabase  2. config.js (crea supabaseClient global)
+         3. header.js  4. módulo propio
+    ==================================================== -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../config.js"></script>
+    <script src="../components/header/header.js"></script>
+    <script src="documentos.js"></script>
+</body>
+</html>

@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Itinerario - Gestor de Viajes</title>
+    <link rel="stylesheet" href="../components/header/header.css">
+    <link rel="stylesheet" href="../dashboard/dashboard.css">
+    <link rel="stylesheet" href="itinerario.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+</head>
+
+<body>
+    <!-- Header Global -->
+    <div id="globalHeader"></div>
+
+    <!-- Banner sin conexión -->
+    <div id="offlineBanner" class="offline-banner">
+        ⚠️ Sin conexión a internet
+    </div>
+
+    <!-- Contenedor principal -->
+    <main class="main-content">
+
+        <!-- Título de sección -->
+        <div class="page-header">
+            <h1>🗓️ Itinerario</h1>
+            <p>Organiza tus actividades día a día</p>
+        </div>
+
+        <!-- Filtros y búsqueda -->
+        <section class="filtros-section">
+            <div class="filtros-grid">
+                <div class="filtro-item">
+                    <label>📅 Fecha</label>
+                    <input type="date" id="filtroFecha" placeholder="Todas las fechas">
+                </div>
+                <div class="filtro-item">
+                    <label>📍 Destino</label>
+                    <select id="filtroDestino">
+                        <option value="todos">Todos los destinos</option>
+                    </select>
+                </div>
+                <div class="filtro-item">
+                    <label>🏷️ Categoría</label>
+                    <select id="filtroCategoria">
+                        <option value="todas">Todas las categorías</option>
+                        <option value="Transporte">🚗 Transporte</option>
+                        <option value="Alojamiento">🏨 Alojamiento</option>
+                        <option value="Comida">🍽️ Comida</option>
+                        <option value="Tour">🎯 Tour</option>
+                        <option value="Actividad">🎭 Actividad</option>
+                        <option value="Compras">🛍️ Compras</option>
+                        <option value="Otro">📌 Otro</option>
+                    </select>
+                </div>
+            </div>
+        </section>
+
+        <!-- Botón agregar actividad (Desktop) -->
+        <div class="actions-desktop">
+            <button class="btn-primary" id="btnNuevaActividadDesktop">
+                ➕ Agregar Actividad
+            </button>
+        </div>
+
+        <!-- Loading -->
+        <div id="loadingItinerario" class="loading" style="display: none;">
+            <div class="spinner"></div>
+            <p>Cargando itinerario...</p>
+        </div>
+
+        <!-- Estado vacío -->
+        <div id="estadoVacio" class="estado-vacio" style="display: none;">
+            <div class="empty-icon">📅</div>
+            <h2>No hay actividades programadas</h2>
+            <p>Comienza agregando actividades a tu itinerario</p>
+            <button class="btn-primary" onclick="abrirModalActividad()">
+                ➕ Agregar primera actividad
+            </button>
+        </div>
+
+        <!-- Lista de actividades por fecha -->
+        <div id="itinerarioLista" class="itinerario-lista">
+            <!-- Se llenará dinámicamente con JS -->
+        </div>
+
+    </main>
+
+    <!-- Botón flotante agregar (Mobile) -->
+    <button class="btn-fab" id="btnNuevaActividadMobile">
+        ➕
+    </button>
+
+    <!-- MODAL AGREGAR/EDITAR ACTIVIDAD -->
+    <div id="modalActividad" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalActividadTitulo">Agregar Actividad</h2>
+                <button class="close-modal" id="closeModalActividad">✕</button>
+            </div>
+            <form id="formActividad">
+                <div class="form-body">
+
+                    <!-- Título -->
+                    <div class="form-group full-width">
+                        <label for="actividadTitulo">Título *</label>
+                        <input type="text" id="actividadTitulo" required placeholder="Ej: Tour por la ciudad">
+                    </div>
+
+                    <!-- Fila: Fecha + Categoría -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="actividadFecha">Fecha *</label>
+                            <input type="date" id="actividadFecha" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="actividadCategoria">Categoría *</label>
+                            <select id="actividadCategoria" required>
+                                <option value="">Selecciona...</option>
+                                <option value="Transporte">🚗 Transporte</option>
+                                <option value="Alojamiento">🏨 Alojamiento</option>
+                                <option value="Comida">🍽️ Comida</option>
+                                <option value="Tour">🎯 Tour</option>
+                                <option value="Actividad">🎭 Actividad</option>
+                                <option value="Compras">🛍️ Compras</option>
+                                <option value="Otro">📌 Otro</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Fila: Hora inicio + Hora fin -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="actividadHoraInicio">Hora inicio</label>
+                            <input type="time" id="actividadHoraInicio">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="actividadHoraFin">Hora fin</label>
+                            <input type="time" id="actividadHoraFin">
+                        </div>
+                    </div>
+
+                    <!-- Ubicación (antes Destino) -->
+                    <div class="form-group full-width">
+                        <label for="actividadDestino">📍 Ubicación</label>
+                        <select id="actividadDestino">
+                            <option value="">Sin ubicación específica</option>
+                        </select>
+                    </div>
+
+                    <!-- Fila: Costo + Moneda -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="actividadCosto">Costo estimado</label>
+                            <input type="number" id="actividadCosto" step="0.01" placeholder="0.00" min="0">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="actividadMoneda">Moneda</label>
+                            <select id="actividadMoneda">
+                                <!-- Se llena dinámicamente -->
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Descripción -->
+                    <div class="form-group full-width">
+                        <label for="actividadDescripcion">Descripción</label>
+                        <textarea id="actividadDescripcion" rows="3" placeholder="Detalles adicionales..."></textarea>
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" id="btnCancelarActividad">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="btn-primary">
+                        💾 Guardar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- MODAL ELIMINAR -->
+    <div id="modalEliminar" class="modal">
+        <div class="modal-content modal-small">
+            <div class="modal-header">
+                <h2>Eliminar Actividad</h2>
+                <button class="close-modal" id="closeModalEliminar">✕</button>
+            </div>
+            <div class="modal-body">
+                <p>¿Estás seguro de que deseas eliminar esta actividad?</p>
+                <p class="text-muted">Esta acción no se puede deshacer.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" id="btnCancelarEliminar">Cancelar</button>
+                <button class="btn-danger" id="btnConfirmarEliminar">Eliminar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <script src="../config.js"></script>
+    <script src="../components/header/header.js"></script>
+    <script src="../utils/db-helpers.js"></script>
+    <script src="itinerario.js"></script>
+</body>
+
+</html>

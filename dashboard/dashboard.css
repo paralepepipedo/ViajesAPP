@@ -1,0 +1,861 @@
+/* ============================================
+   VARIABLES
+   ============================================ */
+:root {
+    --primary: #667eea;
+    --primary-dark: #5568d3;
+    --secondary: #764ba2;
+    --success: #10b981;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+    --info: #3b82f6;
+
+    --bg-light: #f9fafb;
+    --bg-white: #ffffff;
+    --text-dark: #1f2937;
+    --text-gray: #6b7280;
+    --border: #e5e7eb;
+
+    --radius: 12px;
+    --shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+    --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    padding-bottom: 3rem;
+}
+
+/* ============================================
+   OFFLINE BANNER
+   ============================================ */
+.offline-banner {
+    background: var(--warning);
+    color: white;
+    padding: 1rem;
+    text-align: center;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    box-shadow: var(--shadow);
+}
+
+.offline-banner.show {
+    display: flex;
+}
+
+.offline-icon {
+    font-size: 1.5rem;
+}
+
+/* ============================================
+   DASHBOARD CONTAINER
+   ============================================ */
+.dashboard-container {
+    max-width: 1400px;
+    margin: 2rem auto;
+    padding: 0 1.5rem;
+}
+
+/* ============================================
+   DASHBOARD HERO
+   ============================================ */
+.dashboard-hero {
+    background: white;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-lg);
+    padding: 2rem;
+    margin-bottom: 2rem;
+    position: relative;
+    overflow: hidden;
+    animation: fadeIn 0.5s;
+}
+
+.dashboard-hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 300px;
+    height: 300px;
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+    border-radius: 50%;
+    transform: translate(50%, -50%);
+}
+
+.hero-content {
+    position: relative;
+    z-index: 1;
+}
+
+.hero-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+}
+
+.hero-title h1 {
+    font-size: 2.5rem;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 0.5rem;
+}
+
+.hero-subtitle {
+    color: var(--text-gray);
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-edit-viaje {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-edit-viaje:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+}
+
+.hero-badges {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.hero-badge {
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.badge-crucero {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.badge-proximo {
+    background: #dbeafe;
+    color: var(--info);
+}
+
+.badge-en-curso {
+    background: #d1fae5;
+    color: var(--success);
+}
+
+.badge-finalizado {
+    background: #f3f4f6;
+    color: var(--text-gray);
+}
+
+.badge-playa {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.badge-ciudad {
+    background: #e0e7ff;
+    color: #4338ca;
+}
+
+.badge-aventura {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.badge-montana {
+    background: #f3e8ff;
+    color: #6b21a8;
+}
+
+/* ============================================
+   CUENTA REGRESIVA CON RELOJ
+   ============================================ */
+.hero-countdown {
+    background: linear-gradient(135deg, #f0f4ff 0%, #e8f0fe 100%);
+    padding: 1.5rem 2rem;
+    border-radius: var(--radius);
+    border-left: 4px solid var(--primary);
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 2rem;
+}
+
+.countdown-main {
+    flex: 1;
+}
+
+.countdown-days {
+    font-size: 6rem;
+    font-weight: 900;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1;
+    margin-bottom: 0.5rem;
+    text-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+}
+
+.countdown-days-label {
+    color: var(--text-dark);
+    font-weight: 700;
+    font-size: 1.2rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.countdown-clock {
+    align-self: flex-end;
+    padding-bottom: 0.5rem;
+}
+
+.clock-display {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--primary);
+    font-family: 'Courier New', monospace;
+    letter-spacing: 2px;
+}
+
+.clock-labels {
+    font-size: 0.7rem;
+    color: var(--text-gray);
+    font-weight: 600;
+    text-transform: uppercase;
+    margin-top: 0.25rem;
+    letter-spacing: 3px;
+}
+
+
+/* ============================================
+   STATS GRID - COMPACTO
+   ============================================ */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background: white;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 1.25rem;
+    transition: all 0.3s;
+    animation: fadeIn 0.5s;
+    cursor: pointer;
+}
+
+.stat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lg);
+}
+
+.stat-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.stat-card-title {
+    font-size: 0.9rem;
+    color: var(--text-gray);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.stat-card-icon {
+    font-size: 2rem;
+}
+
+.stat-card-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.stat-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem;
+    background: var(--bg-light);
+    border-radius: 8px;
+}
+
+.stat-item-label {
+    font-size: 0.85rem;
+    color: var(--text-gray);
+}
+
+.stat-item-value {
+    font-weight: 700;
+    color: var(--text-dark);
+    font-size: 1rem;
+}
+
+.stat-main-value {
+    font-size: 2.5rem;
+    font-weight: 900;
+    color: var(--text-dark);
+    line-height: 1;
+}
+
+.stat-mini-chart {
+    height: 60px;
+    background: var(--bg-light);
+    border-radius: 8px;
+    padding: 0.5rem;
+    display: flex;
+    align-items: flex-end;
+    gap: 4px;
+}
+
+.chart-bar {
+    flex: 1;
+    background: linear-gradient(to top, var(--primary), var(--secondary));
+    border-radius: 4px;
+    min-height: 10px;
+    opacity: 0.7;
+    transition: opacity 0.3s;
+}
+
+.chart-bar:hover {
+    opacity: 1;
+}
+
+.stat-progress-container {
+    margin-top: 0.5rem;
+}
+
+.progress-text {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    color: var(--text-gray);
+    margin-bottom: 0.5rem;
+}
+
+.progress-bar-bg {
+    background: var(--bg-light);
+    height: 8px;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--success) 0%, var(--info) 100%);
+    border-radius: 10px;
+    transition: width 0.5s;
+}
+
+.destinos-flags {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-top: 0.5rem;
+}
+
+.flag-item {
+    background: var(--bg-light);
+    padding: 0.35rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.participantes-avatars {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-top: 0.5rem;
+}
+
+.avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+/* ============================================
+   TRANSPORTES TIMELINE
+   ============================================ */
+.transportes-section {
+    background: white;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-lg);
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.section-title {
+    font-size: 1.5rem;
+    color: var(--text-dark);
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.transporte-timeline {
+    position: relative;
+    padding-left: 2rem;
+}
+
+.transporte-timeline::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--border);
+}
+
+.transporte-item {
+    position: relative;
+    margin-bottom: 1.5rem;
+    padding-left: 1.5rem;
+}
+
+.transporte-item::before {
+    content: '';
+    position: absolute;
+    left: -2rem;
+    top: 0.5rem;
+    width: 12px;
+    height: 12px;
+    background: var(--primary);
+    border-radius: 50%;
+    border: 3px solid white;
+    box-shadow: 0 0 0 2px var(--primary);
+}
+
+.transporte-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.transporte-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-dark);
+}
+
+.transporte-status {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.status-completo {
+    background: #d1fae5;
+    color: var(--success);
+}
+
+.status-pendiente {
+    background: #fee2e2;
+    color: var(--danger);
+}
+
+.transporte-details {
+    color: var(--text-gray);
+    font-size: 0.9rem;
+    line-height: 1.6;
+}
+
+.transporte-details strong {
+    color: var(--text-dark);
+}
+
+/* ============================================
+   QUICK ACTIONS
+   ============================================ */
+.quick-actions {
+    margin-bottom: 2rem;
+}
+
+.quick-actions .section-title {
+    color: white;
+}
+
+.actions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+}
+
+.action-card {
+    background: white;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 1.25rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-decoration: none;
+    color: var(--text-dark);
+}
+
+.action-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-lg);
+}
+
+.action-icon {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.action-label {
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+
+/* ============================================
+   CHECKLIST
+   ============================================ */
+.checklist-section {
+    background: white;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-lg);
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.checklist-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem;
+    border-radius: var(--radius);
+    margin-bottom: 0.5rem;
+    transition: all 0.3s;
+}
+
+.checklist-item:hover {
+    background: var(--bg-light);
+}
+
+.checklist-item.completed {
+    opacity: 0.6;
+}
+
+.checklist-checkbox {
+    width: 24px;
+    height: 24px;
+    border: 2px solid var(--border);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.3s;
+}
+
+.checklist-item.completed .checklist-checkbox {
+    background: var(--success);
+    border-color: var(--success);
+    color: white;
+}
+
+.checklist-text {
+    flex: 1;
+    font-weight: 500;
+}
+
+.checklist-item.completed .checklist-text {
+    text-decoration: line-through;
+}
+
+/* ============================================
+   UPCOMING ACTIVITIES
+   ============================================ */
+.upcoming-section {
+    background: white;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-lg);
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.upcoming-item {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem;
+    border-left: 4px solid var(--primary);
+    background: var(--bg-light);
+    border-radius: var(--radius);
+    margin-bottom: 1rem;
+}
+
+.upcoming-date {
+    text-align: center;
+    min-width: 60px;
+}
+
+.upcoming-day {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--primary);
+    line-height: 1;
+}
+
+.upcoming-month {
+    font-size: 0.85rem;
+    color: var(--text-gray);
+    text-transform: uppercase;
+}
+
+.upcoming-info {
+    flex: 1;
+}
+
+.upcoming-title {
+    font-weight: 600;
+    color: var(--text-dark);
+    margin-bottom: 0.25rem;
+}
+
+.upcoming-time {
+    font-size: 0.9rem;
+    color: var(--text-gray);
+}
+
+.empty-state {
+    text-align: center;
+    padding: 2rem 1rem;
+    color: var(--text-gray);
+}
+
+.empty-icon {
+    font-size: 3rem;
+    margin-bottom: 0.75rem;
+    opacity: 0.5;
+}
+
+/* ============================================
+   RECENT EXPENSES
+   ============================================ */
+.recent-expenses-section {
+    background: white;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-lg);
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.expense-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.expense-item:last-child {
+    border-bottom: none;
+}
+
+.expense-info {
+    flex: 1;
+}
+
+.expense-description {
+    font-weight: 600;
+    color: var(--text-dark);
+    margin-bottom: 0.25rem;
+}
+
+.expense-meta {
+    font-size: 0.85rem;
+    color: var(--text-gray);
+}
+
+.expense-amount {
+    text-align: right;
+}
+
+.expense-value {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-dark);
+}
+
+.expense-currency {
+    font-size: 0.85rem;
+    color: var(--text-gray);
+    display: block;
+}
+
+/* ============================================
+   LOADING
+   ============================================ */
+.loading-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 20000;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.loading-overlay.active {
+    display: flex;
+}
+
+.spinner {
+    width: 60px;
+    height: 60px;
+    border: 4px solid rgba(255, 255, 255, 0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.loading-overlay p {
+    color: white;
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 768px) {
+    .dashboard-container {
+        padding: 0 1rem;
+    }
+
+    .hero-header {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .hero-title h1 {
+        font-size: 1.75rem;
+    }
+
+    .countdown-days {
+        font-size: 4rem;
+    }
+
+    .countdown-clock {
+        gap: 0.5rem;
+    }
+
+    .clock-unit {
+        min-width: 60px;
+    }
+
+    .clock-value {
+        font-size: 1.5rem;
+        padding: 0.5rem;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .actions-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .hero-countdown {
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+        padding: 1.25rem 1.5rem;
+    }
+
+    .countdown-main {
+        text-align: center;
+    }
+
+    .countdown-days {
+        font-size: 4rem;
+    }
+
+    .clock-display {
+        font-size: 1.5rem;
+    }
+
+    .countdown-clock {
+        align-self: center;
+    }
+}
