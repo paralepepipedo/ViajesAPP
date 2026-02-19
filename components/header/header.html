@@ -5,7 +5,15 @@
             <button class="btn-menu-mobile" id="btnMenuMobile">
                 <span class="hamburger"></span>
             </button>
-            <h1 class="header-logo" id="headerLogo">🌎 Mis Viajes</h1>
+            <div class="header-logo" id="headerLogo">
+                <img
+                    src="/web-app-manifest-192x192.png"
+                    alt="Logo"
+                    class="header-logo-img"
+                    onerror="this.style.display='none'"
+                >
+                <span class="header-logo-text">Mis Viajes</span>
+            </div>
         </div>
         <nav class="header-nav" id="headerNav">
             <!-- Se llenará dinámicamente -->
@@ -15,3 +23,16 @@
 
 <!-- Overlay para menú mobile -->
 <div class="menu-overlay" id="menuOverlay"></div>
+
+<!-- Banner instalar PWA -->
+<div id="pwaInstallBanner" style="display:none;">
+    <div class="pwa-banner-content">
+        <img src="/web-app-manifest-192x192.png" alt="Logo" class="pwa-banner-icon" onerror="this.style.display='none'">
+        <div class="pwa-banner-text">
+            <strong>Instalar App</strong>
+            <span>Accede rápido desde tu pantalla de inicio</span>
+        </div>
+        <button id="pwaBtnInstalar" class="pwa-btn-instalar">Instalar</button>
+        <button id="pwaBtnCerrar" class="pwa-btn-cerrar" aria-label="Cerrar">✕</button>
+    </div>
+</div>

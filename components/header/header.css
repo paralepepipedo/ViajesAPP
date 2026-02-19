@@ -26,17 +26,45 @@
     gap: 1rem;
 }
 
+/* ── Logo: imagen + texto ── */
 .header-logo {
-    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
     margin: 0;
     cursor: pointer;
+    user-select: none;
     transition: transform 0.2s;
+    line-height: 1;
 }
 
 .header-logo:hover {
     transform: scale(1.05);
 }
 
+.header-logo-img {
+    width: 38px;
+    height: 38px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.6);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    flex-shrink: 0;
+    background: rgba(255,255,255,0.15);
+}
+
+.header-logo-text {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: white;
+    white-space: nowrap;
+}
+
+@media (max-width: 400px) {
+    .header-logo-text { display: none; }
+}
+
+/* ── Botón hamburger ── */
 .btn-menu-mobile {
     display: none;
     background: none;
@@ -64,28 +92,14 @@
     transition: all 0.3s;
 }
 
-.hamburger::before {
-    top: -8px;
-}
+.hamburger::before { top: -8px; }
+.hamburger::after  { bottom: -8px; }
 
-.hamburger::after {
-    bottom: -8px;
-}
+.btn-menu-mobile.active .hamburger { background: transparent; }
+.btn-menu-mobile.active .hamburger::before { transform: rotate(45deg); top: 0; }
+.btn-menu-mobile.active .hamburger::after  { transform: rotate(-45deg); bottom: 0; }
 
-.btn-menu-mobile.active .hamburger {
-    background: transparent;
-}
-
-.btn-menu-mobile.active .hamburger::before {
-    transform: rotate(45deg);
-    top: 0;
-}
-
-.btn-menu-mobile.active .hamburger::after {
-    transform: rotate(-45deg);
-    bottom: 0;
-}
-
+/* ── Navegación ── */
 .header-nav {
     display: flex;
     gap: 0.5rem;
@@ -115,28 +129,22 @@
     font-weight: 600;
 }
 
+/* ── Overlay ── */
 .menu-overlay {
     display: none;
     position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    top: 0; left: 0; right: 0; bottom: 0;
     background: rgba(0, 0, 0, 0.5);
     z-index: 999;
 }
 
-.menu-overlay.active {
-    display: block;
-}
+.menu-overlay.active { display: block; }
 
 /* ============================================
    RESPONSIVE - MOBILE
    ============================================ */
 @media (max-width: 768px) {
-    .btn-menu-mobile {
-        display: block;
-    }
+    .btn-menu-mobile { display: block; }
 
     .header-nav {
         position: fixed;
@@ -153,9 +161,7 @@
         z-index: 1001;
     }
 
-    .header-nav.active {
-        left: 0;
-    }
+    .header-nav.active { left: 0; }
 
     .header-nav a,
     .header-nav button {
@@ -184,22 +190,111 @@
     max-width: 400px;
 }
 
-.notificacion.show {
-    top: 80px;
+.notificacion.show { top: 80px; }
+.notificacion-info    { border-left: 4px solid #667eea; }
+.notificacion-success { border-left: 4px solid #10b981; }
+.notificacion-error   { border-left: 4px solid #ef4444; }
+.notificacion-warning { border-left: 4px solid #f59e0b; }
+
+/* ============================================
+   BANNER INSTALAR PWA
+   ============================================ */
+#pwaInstallBanner {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 9999;
+    background: #1e1235;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    padding: 12px 16px;
+    box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.3);
+    animation: slideUpBanner 0.35s ease;
 }
 
-.notificacion-info {
-    border-left: 4px solid #667eea;
+@keyframes slideUpBanner {
+    from { transform: translateY(100%); opacity: 0; }
+    to   { transform: translateY(0);   opacity: 1; }
 }
 
-.notificacion-success {
-    border-left: 4px solid #10b981;
+.pwa-banner-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    max-width: 600px;
+    margin: 0 auto;
 }
 
-.notificacion-error {
-    border-left: 4px solid #ef4444;
+.pwa-banner-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid rgba(255,255,255,0.4);
+    flex-shrink: 0;
 }
 
-.notificacion-warning {
-    border-left: 4px solid #f59e0b;
+.pwa-banner-text {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.pwa-banner-text strong {
+    font-size: 0.95rem;
+    color: #ffffff;
+}
+
+.pwa-banner-text span {
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.pwa-btn-instalar {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 18px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: opacity 0.2s;
+}
+
+.pwa-btn-instalar:hover { opacity: 0.85; }
+
+.pwa-btn-cerrar {
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 1.1rem;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: color 0.2s;
+    flex-shrink: 0;
+}
+
+.pwa-btn-cerrar:hover { color: white; }
+
+@media (min-width: 768px) {
+    #pwaInstallBanner {
+        bottom: 24px;
+        left: 50%;
+        right: auto;
+        transform: translateX(-50%);
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        min-width: 380px;
+        max-width: 480px;
+        animation: slideUpBannerDesktop 0.35s ease;
+    }
+}
+
+@keyframes slideUpBannerDesktop {
+    from { transform: translateX(-50%) translateY(20px); opacity: 0; }
+    to   { transform: translateX(-50%) translateY(0);    opacity: 1; }
 }

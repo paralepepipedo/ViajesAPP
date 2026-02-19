@@ -2,46 +2,124 @@
 // HEADER GLOBAL - Gestión de navegación
 // ============================================
 
-// Cargar header en cualquier página
+// Variable global para el prompt de instalación PWA
+let _pwaInstallPrompt = null;
+
+// Capturar evento de instalación lo antes posible
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    _pwaInstallPrompt = e;
+    mostrarBannerPWA();
+});
+
+// Cuando ya está instalada: ocultar banner para siempre
+window.addEventListener('appinstalled', () => {
+    ocultarBannerPWA();
+    localStorage.setItem('pwa-instalada', '1');
+    _pwaInstallPrompt = null;
+});
+
+// ── PWA Banner ──────────────────────────────
+function mostrarBannerPWA() {
+    if (localStorage.getItem('pwa-instalada')) return;
+    const cerradoHasta = localStorage.getItem('pwa-banner-cerrado');
+    if (cerradoHasta && Date.now() < parseInt(cerradoHasta)) return;
+
+    const banner = document.getElementById('pwaInstallBanner');
+    if (banner && _pwaInstallPrompt) banner.style.display = 'block';
+}
+
+function ocultarBannerPWA() {
+    const banner = document.getElementById('pwaInstallBanner');
+    if (banner) banner.style.display = 'none';
+}
+
+function inicializarBannerPWA() {
+    // Limpiar flag expirado
+    const cerradoHasta = localStorage.getItem('pwa-banner-cerrado');
+    if (cerradoHasta && Date.now() > parseInt(cerradoHasta)) {
+        localStorage.removeItem('pwa-banner-cerrado');
+    }
+
+    const btnInstalar = document.getElementById('pwaBtnInstalar');
+    if (btnInstalar) {
+        btnInstalar.addEventListener('click', async () => {
+            if (!_pwaInstallPrompt) return;
+            _pwaInstallPrompt.prompt();
+            const { outcome } = await _pwaInstallPrompt.userChoice;
+            if (outcome === 'accepted') ocultarBannerPWA();
+            _pwaInstallPrompt = null;
+        });
+    }
+
+    const btnCerrar = document.getElementById('pwaBtnCerrar');
+    if (btnCerrar) {
+        btnCerrar.addEventListener('click', () => {
+            ocultarBannerPWA();
+            // No volver a molestar por 7 días
+            localStorage.setItem('pwa-banner-cerrado', Date.now() + 7 * 24 * 60 * 60 * 1000);
+        });
+    }
+
+    // Si el prompt llegó antes de que se cargara el header
+    mostrarBannerPWA();
+}
+
+// ── Favicons ─────────────────────────────────
+function inyectarFavicons() {
+    if (document.getElementById('favicon-injected')) return;
+    document.head.insertAdjacentHTML('beforeend', `
+        <link id="favicon-injected" rel="icon" href="/favicon.ico" sizes="48x48">
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+        <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png">
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+        <link rel="manifest" href="/site.webmanifest">
+        <meta name="theme-color" content="#667eea">
+    `);
+}
+
+// ── Cargar header ─────────────────────────────
 async function cargarHeader() {
     const headerContainer = document.getElementById('globalHeader');
     if (!headerContainer) return;
 
-    try {
-        // Determinar la ruta correcta según la ubicación del HTML
-        const rutaHeader = obtenerRutaHeader();
+    inyectarFavicons();
 
+    try {
+        const rutaHeader = obtenerRutaHeader();
         const response = await fetch(rutaHeader);
         const html = await response.text();
         headerContainer.innerHTML = html;
 
         inicializarHeader();
+        inicializarBannerPWA();
     } catch (error) {
         console.error('Error cargando header:', error);
     }
 }
 
-// Obtener ruta correcta del header según ubicación
+// ── Ruta del header ───────────────────────────
 function obtenerRutaHeader() {
     const path = window.location.pathname;
 
-    // Si estamos en la raíz (index.html)
-    if (path.endsWith('/') || path.endsWith('index.html') || path.includes('/ViajesAPP/') && !path.includes('/wizard/') && !path.includes('/dashboard/') && !path.includes('/gastos/') && !path.includes('/itinerario/') && !path.includes('/documentos/') && !path.includes('/crucero/')) {
+    if (path.endsWith('/') || path.endsWith('index.html') ||
+        path.includes('/ViajesAPP/') &&
+        !path.includes('/wizard/') && !path.includes('/dashboard/') &&
+        !path.includes('/gastos/') && !path.includes('/itinerario/') &&
+        !path.includes('/documentos/') && !path.includes('/crucero/')) {
         return 'components/header/header.html';
     }
 
-    // Si estamos en subcarpetas (wizard, dashboard, gastos, etc.)
     return '../components/header/header.html';
 }
 
-// Inicializar funcionalidad del header
+// ── Inicializar header ────────────────────────
 function inicializarHeader() {
-    const btnMenu = document.getElementById('btnMenuMobile');
-    const headerNav = document.getElementById('headerNav');
+    const btnMenu    = document.getElementById('btnMenuMobile');
+    const headerNav  = document.getElementById('headerNav');
     const menuOverlay = document.getElementById('menuOverlay');
-    const headerLogo = document.getElementById('headerLogo');
+    const headerLogo  = document.getElementById('headerLogo');
 
-    // Menú mobile
     if (btnMenu) {
         btnMenu.addEventListener('click', () => {
             btnMenu.classList.toggle('active');
@@ -58,24 +136,22 @@ function inicializarHeader() {
         });
     }
 
-    // Logo click - volver al index
     if (headerLogo) {
+        headerLogo.style.cursor = 'pointer';
         headerLogo.addEventListener('click', () => {
-            // Determinar ruta al index según ubicación
             const path = window.location.pathname;
-            if (path.endsWith('/') || path.endsWith('index.html') || !path.includes('/wizard/') && !path.includes('/dashboard/') && !path.includes('/gastos/') && !path.includes('/itinerario/') && !path.includes('/documentos/') && !path.includes('/crucero/')) {
-                window.location.href = 'index.html';
-            } else {
-                window.location.href = '../index.html';
-            }
+            const enRaiz = path.endsWith('/') || path.endsWith('index.html') ||
+                !path.includes('/wizard/') && !path.includes('/dashboard/') &&
+                !path.includes('/gastos/') && !path.includes('/itinerario/') &&
+                !path.includes('/documentos/') && !path.includes('/crucero/');
+            window.location.href = enRaiz ? 'index.html' : '../index.html';
         });
     }
 
-    // Configurar navegación según contexto
     configurarNavegacion();
 }
 
-// Configurar navegación según la página actual
+// ── Navegación según contexto ─────────────────
 function configurarNavegacion() {
     const headerNav = document.getElementById('headerNav');
     if (!headerNav) return;
@@ -83,19 +159,17 @@ function configurarNavegacion() {
     const linkViaje = obtenerParametroURL('link');
     const path = window.location.pathname;
 
-    // Determinar si estamos en raíz o subcarpeta
-    const enRaiz = path.endsWith('/') || path.endsWith('index.html') || !path.includes('/wizard/') && !path.includes('/dashboard/') && !path.includes('/gastos/') && !path.includes('/itinerario/') && !path.includes('/documentos/') && !path.includes('/crucero/');
+    const enRaiz = path.endsWith('/') || path.endsWith('index.html') ||
+        !path.includes('/wizard/') && !path.includes('/dashboard/') &&
+        !path.includes('/gastos/') && !path.includes('/itinerario/') &&
+        !path.includes('/documentos/') && !path.includes('/crucero/');
     const prefijo = enRaiz ? '' : '../';
 
-    // Si estamos en el index (sin link de viaje)
     if (!linkViaje || path.includes('index.html')) {
-        headerNav.innerHTML = `
-            <a href="${prefijo}wizard/wizard.html">+ Nuevo Viaje</a>
-        `;
+        headerNav.innerHTML = `<a href="${prefijo}wizard/wizard.html">+ Nuevo Viaje</a>`;
         return;
     }
 
-    // Si estamos dentro de un viaje
     headerNav.innerHTML = `
         <a href="${prefijo}index.html">🏠 Home</a>
         <a href="${prefijo}dashboard/dashboard.html?link=${linkViaje}" class="${path.includes('dashboard') ? 'active' : ''}">Dashboard</a>
@@ -105,11 +179,10 @@ function configurarNavegacion() {
         <button id="btnCrucero" style="display:none;">🛳️ Crucero</button>
     `;
 
-    // Verificar si el viaje tiene crucero
     verificarCrucero(linkViaje, prefijo);
 }
 
-// Verificar si el viaje tiene crucero activo
+// ── Verificar crucero ─────────────────────────
 async function verificarCrucero(linkViaje, prefijo = '../') {
     try {
         const { data, error } = await supabaseClient
@@ -132,7 +205,7 @@ async function verificarCrucero(linkViaje, prefijo = '../') {
     }
 }
 
-// Inicializar al cargar la página
+// ── Init ──────────────────────────────────────
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', cargarHeader);
 } else {
