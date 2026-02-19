@@ -1,0 +1,50 @@
+proyecto-viajes/
+│
+├── index.html                    # Landing con fichas de viajes
+├── config.js                     # Configuración Supabase (reutilizable)
+│
+├── components/
+│   └── header/
+│       ├── header.html          # Header global
+│       ├── header.css
+│       └── header.js
+│
+├── wizard/
+│   ├── wizard.html              # Creación/edición de viaje
+│   ├── wizard.css
+│   └── wizard.js
+│
+├── dashboard/
+│   ├── dashboard.html           # Vista principal del viaje
+│   ├── dashboard.css
+│   └── dashboard.js
+│
+├── gastos/
+│   ├── gastos.html              # Gestión de gastos
+│   ├── gastos.css
+│   └── gastos.js
+│
+├── itinerario/
+│   ├── itinerario.html          # Programación de actividades
+│   ├── itinerario.css
+│   └── itinerario.js
+│
+├── documentos/
+│   ├── documentos.html          # Gestión de archivos
+│   ├── documentos.css
+│   └── documentos.js
+│
+├── crucero/
+│   ├── crucero.html             # Info específica de crucero
+│   ├── crucero.css
+│   └── crucero.js
+│
+├── mobile/                       # Versiones mobile (si son separadas)
+│   ├── index-mobile.html
+│   ├── dashboard-mobile.html
+│   └── ...
+│
+└── utils/
+    ├── db-helpers.js            # Funciones CRUD reutilizables
+    ├── date-utils.js            # Manejo de fechas
+    └── export-excel.js          # Exportación a Excel
