@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +8,7 @@
     <link rel="stylesheet" href="../components/header/header.css">
     <link rel="stylesheet" href="crucero.css">
 </head>
+
 <body>
     <div id="globalHeader"></div>
     <div id="offlineBanner" class="offline-banner">
@@ -90,7 +92,8 @@
                     </div>
                     <div class="info-card full-width">
                         <h4>📝 Notas Generales</h4>
-                        <div id="infoNotas" style="white-space:pre-line;font-size:14px;color:#475569;line-height:1.6;"></div>
+                        <div id="infoNotas" style="white-space:pre-line;font-size:14px;color:#475569;line-height:1.6;">
+                        </div>
                     </div>
                 </div>
             </div>
@@ -345,10 +348,61 @@
         </div>
     </div>
 
+    <!-- MODAL NUEVO TOUR DESDE CRUCERO -->
+    <div class="modal-overlay" id="modalNuevoTour">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3>🗺️ Agregar Tour</h3>
+                <button class="modal-close" id="btnCerrarModalNuevoTour">✕</button>
+            </div>
+            <div class="nt-puerto-ref" id="ntNombrePuerto"></div>
+            <form id="formNuevoTour" class="doc-form">
+                <input type="hidden" id="ntFecha">
+                <input type="hidden" id="ntDestinoId">
+                <input type="hidden" id="ntPuertoId">
+
+                <div class="form-group">
+                    <label>Título del Tour <span style="color:#ef4444">*</span></label>
+                    <input type="text" id="ntTitulo" placeholder="Ej: City tour Rio de Janeiro" required>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Hora Inicio</label>
+                        <input type="time" id="ntHoraInicio">
+                    </div>
+                    <div class="form-group">
+                        <label>Hora Fin</label>
+                        <input type="time" id="ntHoraFin">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Costo Estimado</label>
+                        <input type="number" id="ntCosto" step="0.01" min="0" placeholder="0.00">
+                    </div>
+                    <div class="form-group">
+                        <label>Moneda</label>
+                        <select id="ntMoneda"></select>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary" id="btnCancelarNuevoTour">Cancelar</button>
+                    <button type="submit" class="btn-primary">💾 Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="../config.js"></script>
     <script src="../components/header/header.js"></script>
     <script src="crucero.js"></script>
 </body>
+
 </html>

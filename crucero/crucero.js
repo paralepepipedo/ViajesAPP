@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 // ================================================================
 async function cargarDestinos() {
     const { data } = await supabaseClient
-        .from('v3_destinos').select('id, nombre')
+        .from('v3_destinos').select('id, nombre, moneda_codigo, tipo_cambio_clp')
         .eq('viaje_id', viajeId).order('orden');
     destinos = data || [];
 
@@ -269,24 +269,29 @@ function renderPuertos() {
         const tours = toursDelPuerto(p);
         let toursHtml = '';
         if (tours.length > 0) {
-            toursHtml = `
-                <div class="puerto-tours-section">
-                    <div class="puerto-tours-divider"></div>
-                    ${tours.map(t => `
-                        <div class="puerto-tour-item" onclick="abrirPopupTour('${t.id}')">
-                            <span class="pto-icon">🗺️</span>
-                            <span class="pto-titulo">${t.titulo}</span>
-                            ${t.hora_inicio ? `<span class="pto-hora">${t.hora_inicio}${t.hora_fin ? '–' + t.hora_fin : ''}</span>` : ''}
-                            <span class="pto-arrow">→</span>
-                        </div>
-                    `).join('')}
-                </div>`;
+            toursHtml = `<div class="puerto-tours-section">
+  <div class="puerto-tours-divider"></div>
+  ${tours.map(t => `
+    <div class="puerto-tour-item" onclick="abrirPopupTour('${t.id}')">
+      <span class="pto-icon">🗺️</span>
+      <span class="pto-titulo">${t.titulo}</span>
+      ${t.hora_inicio ? `<span class="pto-hora">${t.hora_inicio}${t.hora_fin ? ' – ' + t.hora_fin : ''}</span>` : ''}
+      <span class="pto-arrow">›</span>
+    </div>`).join('')}
+  <div class="puerto-no-tours" style="margin-top:6px;">
+    <button class="btn-add-tour-inline" onclick="abrirModalNuevoTour('${p.id}')" title="Agregar otro tour">+</button>
+  </div>
+</div>`;
+
         } else {
-            toursHtml = `
-                <div class="puerto-tours-section">
-                    <div class="puerto-tours-divider"></div>
-                    <div class="puerto-no-tours">🗺️ Sin tours programados</div>
-                </div>`;
+            toursHtml = `<div class="puerto-tours-section">
+    <div class="puerto-tours-divider"></div>
+    <div class="puerto-no-tours">
+      Sin tours programados
+      <button class="btn-add-tour-inline" onclick="abrirModalNuevoTour('${p.id}')" title="Agregar tour">+</button>
+    </div>
+  </div>`;
+
         }
 
         return `
@@ -484,6 +489,113 @@ function irATabTours() {
     document.querySelector('.ctab[data-tab="tours"]').classList.add('active');
     document.getElementById('tab-tours').classList.add('active');
 }
+// ================================================================
+// MODAL NUEVO TOUR DESDE CRUCERO
+// ================================================================
+
+function abrirModalNuevoTour(puertoId) {
+    const puerto = puertos.find(p => p.id === puertoId);
+    if (!puerto) return;
+
+    // Extraer fecha del puerto en formato YYYY-MM-DD (Chile local)
+    const fechaRef = puerto.fecha_llegada || puerto.fecha_salida;
+    let fechaTour = '';
+    if (fechaRef) {
+        fechaTour = new Intl.DateTimeFormat('en-CA', {
+            timeZone: 'America/Santiago',
+            year: 'numeric', month: '2-digit', day: '2-digit'
+        }).format(new Date(fechaRef));
+    }
+
+    // Destino vinculado al puerto (si tiene)
+    const destinoId = puerto.destino_id || '';
+
+    // Llenar el formulario del modal
+    document.getElementById('ntFecha').value = fechaTour;
+    document.getElementById('ntDestinoId').value = destinoId;
+    document.getElementById('ntPuertoId').value = puertoId;
+    document.getElementById('ntTitulo').value = '';
+    document.getElementById('ntCosto').value = '';
+
+    // Llenar select de moneda con los destinos disponibles
+    const selectMoneda = document.getElementById('ntMoneda');
+    selectMoneda.innerHTML = '';
+    const monedasVistas = new Set();
+    destinos.forEach(d => { if (d.moneda_codigo) monedasVistas.add(d.moneda_codigo); });
+    // CLP siempre disponible como fallback
+    monedasVistas.add('CLP');
+    monedasVistas.forEach(m => {
+        const opt = document.createElement('option');
+        opt.value = m; opt.textContent = m;
+        selectMoneda.appendChild(opt);
+    });
+
+    // Preseleccionar: primero intenta la moneda del destino vinculado al puerto,
+    // si no tiene, usa la moneda del primer destino del viaje
+    let monedaDefault = 'CLP';
+    if (destinoId) {
+        const dest = destinos.find(d => d.id === destinoId);
+        if (dest?.moneda_codigo) monedaDefault = dest.moneda_codigo;
+    } else if (destinos.length > 0 && destinos[0].moneda_codigo) {
+        monedaDefault = destinos[0].moneda_codigo;
+    }
+    selectMoneda.value = monedaDefault;
+
+    // Nombre del puerto como referencia visual
+    document.getElementById('ntNombrePuerto').textContent =
+        `${puerto.nombre_puerto} · ${fechaTour ? fechaCorta(fechaTour) : ''}`;
+
+    abrirModal('modalNuevoTour');
+}
+
+async function guardarNuevoTour(e) {
+    e.preventDefault();
+    const btn = e.submitter;
+    btn.disabled = true;
+    btn.textContent = 'Guardando...';
+
+    const puertoId = document.getElementById('ntPuertoId').value;
+
+    try {
+        const payload = {
+            viaje_id: viajeId,
+            titulo: document.getElementById('ntTitulo').value.trim(),
+            fecha: document.getElementById('ntFecha').value,
+            categoria: 'Tour',
+            destino_id: document.getElementById('ntDestinoId').value || null,
+            costo_estimado: parseFloat(document.getElementById('ntCosto').value) || null,
+            costo_moneda: document.getElementById('ntMoneda').value || 'CLP',
+            vinculado_crucero: true,
+            hora_inicio: null,
+            hora_fin: null,
+            descripcion: null
+        };
+
+        const { error } = await supabaseClient.from('v3_itinerario').insert(payload);
+        if (error) throw error;
+
+        cerrarModal('modalNuevoTour');
+
+        // Recargar y hacer scroll al grupo del puerto donde se creó
+        await cargarToursItinerario();
+        // Pequeño delay para que el DOM se actualice, luego scroll
+        setTimeout(() => {
+            const grupos = document.querySelectorAll('.tours-destino-group');
+            // Buscar el grupo que corresponde al puerto por posición (orden)
+            const idx = puertos.findIndex(p => p.id === puertoId);
+            if (grupos[idx]) {
+                grupos[idx].scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }, 150);
+
+    } catch (err) {
+        console.error(err);
+        mostrarNotificacion('Error al guardar el tour: ' + (err.message || JSON.stringify(err)), 'error');
+    } finally {
+        btn.disabled = false;
+        btn.textContent = '💾 Guardar';
+    }
+}
 
 // ================================================================
 //  EVENTOS
@@ -536,6 +648,15 @@ function inicializarEventos() {
     document.querySelectorAll('.modal-overlay').forEach(m => {
         m.addEventListener('click', e => { if (e.target === m) cerrarModal(m.id); });
     });
+
+    // Nuevo Tour desde crucero
+    document.getElementById('btnCerrarModalNuevoTour')?.addEventListener('click', () => cerrarModal('modalNuevoTour'));
+    document.getElementById('btnCancelarNuevoTour')?.addEventListener('click', () => cerrarModal('modalNuevoTour'));
+    document.getElementById('formNuevoTour')?.addEventListener('submit', guardarNuevoTour);
+    document.getElementById('modalNuevoTour')?.addEventListener('click', e => {
+        if (e.target === e.currentTarget) cerrarModal('modalNuevoTour');
+    });
+
 }
 
 function actualizarCamposPuerto() {
