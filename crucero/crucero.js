@@ -89,9 +89,10 @@ async function cargarCrucero() {
 
     renderHero();
     await cargarActividades();
-    await cargarPuertos();         // ← primero carga puertos (renderPuertos se llama internamente)
-    await cargarToursItinerario(); // ← ahora renderTours() ya tiene puertos disponibles
+    await cargarPuertos();
+    await cargarToursItinerario();
     renderInfoTab();
+    renderMapa();
 }
 
 async function cargarPuertos() {
@@ -434,6 +435,15 @@ function renderInfoTab() {
     const meta = cruceroData.detalles || {};
     const tipos = { interior: 'Interior', oceanview: 'Vista al Mar', balcony: 'Balcón', suite: 'Suite', suite_royal: 'Suite Royal' };
 
+    const turnosCena = {
+        primer_turno: 'Primer turno',
+        segundo_turno: 'Segundo turno',
+        flexible: 'Flexible (My Dining)'
+    };
+    const cenaLabel = meta.turno_cena
+        ? `${turnosCena[meta.turno_cena] || meta.turno_cena}${meta.horario_cena ? ' · ' + meta.horario_cena : ''}`
+        : null;
+
     const filas = [
         ['🚢 Barco', cruceroData.nombre_barco],
         ['🏢 Naviera', cruceroData.naviera],
@@ -442,6 +452,7 @@ function renderInfoTab() {
         ['🏗️ Deck', meta.deck],
         ['📋 N° Reserva', meta.reserva],
         ['📞 Tel. Naviera', meta.tel_naviera],
+        ['🍽️ Cena', cenaLabel],
         ['🚢 Puerto Salida', meta.puerto_salida],
         ['🏁 Puerto Llegada', meta.puerto_llegada],
     ].filter(([, v]) => v);
@@ -451,6 +462,78 @@ function renderInfoTab() {
     ).join('');
 
     document.getElementById('infoNotas').textContent = cruceroData.notas || 'Sin notas adicionales.';
+}
+
+// ================================================================
+//  MAPA DEL ITINERARIO
+// ================================================================
+function renderMapa() {
+    if (!cruceroData) return;
+    const mapaUrl = cruceroData.detalles?.mapa_url || null;
+
+    const seccion      = document.getElementById('mapaSeccion');
+    const uploadZone   = document.getElementById('mapaUploadZone');
+    const heroThumb    = document.getElementById('heroMapaThumb');
+    const heroImg      = document.getElementById('heroMapaImg');
+    const mapaImg      = document.getElementById('mapaItinerarioImg');
+    const lightboxImg  = document.getElementById('lightboxImg');
+
+    if (mapaUrl) {
+        // Hay imagen: mostrar toggle + miniatura en hero
+        seccion.style.display    = 'block';
+        uploadZone.style.display = 'none';
+        heroThumb.style.display  = 'flex';
+        heroImg.src              = mapaUrl;
+        mapaImg.src              = mapaUrl;
+        if (lightboxImg) lightboxImg.src = mapaUrl;
+    } else {
+        // Sin imagen: mostrar zona de upload
+        seccion.style.display    = 'none';
+        uploadZone.style.display = 'flex';
+        heroThumb.style.display  = 'none';
+    }
+}
+
+async function subirMapaItinerario(file) {
+    if (!file || !cruceroId) return;
+    mostrarNotificacion('Subiendo imagen...', 'info');
+
+    const ext  = file.name.split('.').pop().toLowerCase();
+    const path = `cruceros/${cruceroId}/mapa_itinerario.${ext}`;
+
+    const { error: upError } = await supabaseClient.storage
+        .from('viajes-docs')
+        .upload(path, file, { upsert: true });
+
+    if (upError) { mostrarNotificacion('Error al subir imagen', 'error'); return; }
+
+    const { data: urlData } = supabaseClient.storage
+        .from('viajes-docs')
+        .getPublicUrl(path);
+
+    const detallesActualizados = { ...(cruceroData.detalles || {}), mapa_url: urlData.publicUrl };
+
+    const { error: dbError } = await supabaseClient
+        .from('v3_cruceros')
+        .update({ detalles: detallesActualizados })
+        .eq('id', cruceroId);
+
+    if (dbError) { mostrarNotificacion('Error al guardar URL', 'error'); return; }
+
+    cruceroData.detalles = detallesActualizados;
+    mostrarNotificacion('Mapa guardado ✓', 'success');
+    renderMapa();
+}
+
+function abrirLightbox() {
+    const url = cruceroData?.detalles?.mapa_url;
+    if (!url) return;
+    document.getElementById('lightboxImg').src = url;
+    document.getElementById('lightboxMapa').classList.add('show');
+}
+
+function cerrarLightbox() {
+    document.getElementById('lightboxMapa').classList.remove('show');
 }
 
 function poblarFiltroFechas() {
@@ -657,6 +740,33 @@ function inicializarEventos() {
         if (e.target === e.currentTarget) cerrarModal('modalNuevoTour');
     });
 
+    // Mapa itinerario — toggle colapsable
+    document.getElementById('btnToggleMapa')?.addEventListener('click', () => {
+        const col   = document.getElementById('mapaColapsable');
+        const arrow = document.querySelector('.mapa-toggle-arrow');
+        const open  = col.classList.toggle('open');
+        arrow.textContent = open ? '▲' : '▼';
+    });
+
+    // Mapa — subir imagen (zona upload + lightbox)
+    document.getElementById('mapaFileInput')?.addEventListener('change', e => {
+        const f = e.target.files[0]; if (f) subirMapaItinerario(f);
+    });
+    document.getElementById('mapaFileInputLightbox')?.addEventListener('change', e => {
+        const f = e.target.files[0]; if (f) { cerrarLightbox(); subirMapaItinerario(f); }
+    });
+
+    // Mapa — zoom / lightbox
+    document.getElementById('btnZoomMapa')?.addEventListener('click', abrirLightbox);
+    document.getElementById('heroMapaThumb')?.addEventListener('click', abrirLightbox);
+    document.getElementById('btnCerrarLightbox')?.addEventListener('click', cerrarLightbox);
+    document.getElementById('lightboxMapa')?.addEventListener('click', e => {
+        if (e.target === e.currentTarget || e.target.id === 'lightboxMapa') cerrarLightbox();
+    });
+
+    // ESC cierra lightbox
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') cerrarLightbox(); });
+
 }
 
 function actualizarCamposPuerto() {
@@ -683,6 +793,8 @@ function abrirModalCrucero() {
         document.getElementById('crucNumReserva').value = meta.reserva || '';
         document.getElementById('crucDeck').value = meta.deck || '';
         document.getElementById('crucTelNaviera').value = meta.tel_naviera || '';
+        document.getElementById('crucTurnoCena').value = meta.turno_cena || '';
+        document.getElementById('crucHorarioCena').value = meta.horario_cena || '';
         document.getElementById('crucNotas').value = cruceroData.notas || '';
         document.getElementById('modalCruceroTitulo').textContent = 'Editar Crucero';
     } else {
@@ -771,7 +883,10 @@ async function guardarCrucero(e) {
                 puerto_llegada: document.getElementById('crucPuertoLlegada').value.trim() || null,
                 reserva: document.getElementById('crucNumReserva').value.trim() || null,
                 deck: document.getElementById('crucDeck').value.trim() || null,
-                tel_naviera: document.getElementById('crucTelNaviera').value.trim() || null
+                tel_naviera: document.getElementById('crucTelNaviera').value.trim() || null,
+                turno_cena: document.getElementById('crucTurnoCena').value || null,
+                horario_cena: document.getElementById('crucHorarioCena').value.trim() || null,
+                mapa_url: cruceroData?.detalles?.mapa_url || null
             }
         };
 

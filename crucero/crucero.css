@@ -973,7 +973,250 @@ body {
    }
 }
 
-/* ── Botón + inline para agregar tour ── */
+/* ================================================================
+   MAPA DEL ITINERARIO
+   ================================================================ */
+
+/* Miniatura en el hero (Opción D) */
+.hero-mapa-thumb {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: .2rem;
+    cursor: pointer;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 2px solid rgba(255, 255, 255, .3);
+    width: 68px;
+    transition: border-color .2s, transform .2s;
+}
+
+.hero-mapa-thumb:hover {
+    border-color: rgba(255, 255, 255, .75);
+    transform: scale(1.04);
+}
+
+.hero-mapa-thumb img {
+    width: 100%;
+    height: 48px;
+    object-fit: cover;
+    display: block;
+}
+
+.hero-mapa-label {
+    background: rgba(0, 0, 0, .35);
+    color: white;
+    font-size: .58rem;
+    font-weight: 700;
+    padding: .15rem 0;
+    text-align: center;
+    width: 100%;
+    letter-spacing: .04em;
+}
+
+/* Botón toggle (Opción B) */
+.mapa-toggle-btn {
+    width: 100%;
+    background: #f0f0ff;
+    border: 1.5px solid #c7d2fe;
+    border-radius: 10px;
+    padding: .55rem 1rem;
+    font-size: .85rem;
+    font-weight: 600;
+    color: #4338ca;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: .75rem;
+    transition: background .15s;
+}
+
+.mapa-toggle-btn:hover {
+    background: #e0e7ff;
+}
+
+.mapa-toggle-arrow {
+    font-size: .75rem;
+    transition: transform .25s;
+}
+
+/* Panel colapsable */
+.mapa-colapsable {
+    display: none;
+    margin-bottom: .85rem;
+    animation: mapaFadeIn .25s ease;
+}
+
+.mapa-colapsable.open {
+    display: block;
+}
+
+@keyframes mapaFadeIn {
+    from { opacity: 0; transform: translateY(-6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Imagen del mapa */
+.mapa-img-wrap {
+    position: relative;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid #e2e8f0;
+    background: #f1f5f9;
+}
+
+.mapa-itinerario-img {
+    width: 100%;
+    max-height: 420px;
+    object-fit: contain;
+    display: block;
+    background: #f1f5f9;
+}
+
+.mapa-zoom-btn {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    background: rgba(255, 255, 255, .88);
+    backdrop-filter: blur(4px);
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: .3rem .65rem;
+    font-size: .75rem;
+    font-weight: 600;
+    color: #4338ca;
+    cursor: pointer;
+    transition: background .15s;
+}
+
+.mapa-zoom-btn:hover {
+    background: white;
+}
+
+/* Zona de upload */
+.mapa-upload-zone {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: .55rem;
+    padding: 1.8rem 1rem;
+    border: 2px dashed #cbd5e1;
+    border-radius: 10px;
+    background: #f8fafc;
+    text-align: center;
+    margin-bottom: .85rem;
+}
+
+.muz-icon { font-size: 2rem; }
+
+.muz-title {
+    font-weight: 600;
+    font-size: .92rem;
+    color: #1e293b;
+}
+
+.muz-sub {
+    font-size: .78rem;
+    color: #94a3b8;
+}
+
+/* ================================================================
+   LIGHTBOX FULLSCREEN
+   ================================================================ */
+.lightbox-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, .92);
+    z-index: 10000;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+
+.lightbox-overlay.show {
+    display: flex;
+}
+
+.lightbox-close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: rgba(255, 255, 255, .15);
+    border: none;
+    color: white;
+    font-size: 1.3rem;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background .15s;
+    z-index: 1;
+}
+
+.lightbox-close:hover {
+    background: rgba(255, 255, 255, .3);
+}
+
+.lightbox-content {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    overflow: auto;
+}
+
+.lightbox-content img {
+    max-width: 100%;
+    max-height: calc(100vh - 100px);
+    object-fit: contain;
+    border-radius: 8px;
+    display: block;
+}
+
+.lightbox-footer {
+    padding: .75rem 0 .25rem;
+    display: flex;
+    justify-content: center;
+}
+
+.lightbox-cambiar-btn {
+    color: white;
+    border-color: rgba(255, 255, 255, .4);
+    background: rgba(255, 255, 255, .1);
+}
+
+.lightbox-cambiar-btn:hover {
+    background: rgba(255, 255, 255, .2);
+}
+
+/* ================================================================
+   RESPONSIVE — ajustes para móvil
+   ================================================================ */
+@media (max-width: 600px) {
+    .hero-mapa-thumb {
+        width: 56px;
+    }
+
+    .hero-mapa-thumb img {
+        height: 40px;
+    }
+
+    .mapa-itinerario-img {
+        max-height: 260px;
+    }
+
+    .mapa-toggle-btn {
+        font-size: .8rem;
+    }
+}
 .btn-add-tour-inline {
    display: inline-flex;
    align-items: center;

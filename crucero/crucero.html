@@ -40,6 +40,12 @@
                         <span id="heroNoches" class="ship-tag"></span>
                     </div>
                 </div>
+                <!-- Miniatura mapa (Opción D) -->
+                <div id="heroMapaThumb" class="hero-mapa-thumb" style="display:none;" title="Ver mapa del itinerario">
+                    <img id="heroMapaImg" src="" alt="Mapa itinerario">
+                    <span class="hero-mapa-label">🔍 Ruta</span>
+                </div>
+
                 <button class="btn-icon-lg" id="btnEditarCrucero" title="Editar crucero">✏️</button>
             </div>
 
@@ -57,6 +63,32 @@
                     <h3 class="tab-title">Itinerario de Puertos</h3>
                     <button class="btn-primary btn-sm" id="btnAgregarPuerto">+ Puerto</button>
                 </div>
+
+                <!-- Mapa colapsable (Opción B) -->
+                <div id="mapaSeccion" style="display:none;">
+                    <button class="mapa-toggle-btn" id="btnToggleMapa">
+                        <span>🗺️ Ver mapa del itinerario</span>
+                        <span class="mapa-toggle-arrow">▼</span>
+                    </button>
+                    <div id="mapaColapsable" class="mapa-colapsable">
+                        <div class="mapa-img-wrap">
+                            <img id="mapaItinerarioImg" src="" alt="Mapa del itinerario del crucero" class="mapa-itinerario-img">
+                            <button class="mapa-zoom-btn" id="btnZoomMapa" title="Ver en pantalla completa">⛶ Ampliar</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Zona upload cuando no hay imagen -->
+                <div id="mapaUploadZone" class="mapa-upload-zone" style="display:none;">
+                    <span class="muz-icon">🗺️</span>
+                    <p class="muz-title">Agregar mapa del itinerario</p>
+                    <p class="muz-sub">Sube la imagen oficial de la naviera</p>
+                    <label class="btn-primary btn-sm" style="cursor:pointer;">
+                        📁 Seleccionar imagen
+                        <input type="file" id="mapaFileInput" accept="image/*" style="display:none;">
+                    </label>
+                </div>
+
                 <div id="puertosTimeline" class="puertos-timeline"></div>
             </div>
 
@@ -171,6 +203,21 @@
                 <div class="form-group">
                     <label>Teléfono / Contacto Naviera</label>
                     <input type="tel" id="crucTelNaviera" placeholder="+56 2298 84855">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>🍽️ Preferencia Cena</label>
+                        <select id="crucTurnoCena">
+                            <option value="">Sin especificar</option>
+                            <option value="primer_turno">Primer turno</option>
+                            <option value="segundo_turno">Segundo turno</option>
+                            <option value="flexible">Flexible (My Dining)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Horario del turno</label>
+                        <input type="text" id="crucHorarioCena" placeholder="ej: 19:45 - 21:45">
+                    </div>
                 </div>
                 <div class="form-group">
                     <label>Notas Generales</label>
@@ -345,6 +392,20 @@
                     🗺️ Ver todos los tours →
                 </button>
             </div>
+        </div>
+    </div>
+
+    <!-- LIGHTBOX MAPA FULLSCREEN -->
+    <div class="lightbox-overlay" id="lightboxMapa">
+        <button class="lightbox-close" id="btnCerrarLightbox">✕</button>
+        <div class="lightbox-content">
+            <img id="lightboxImg" src="" alt="Mapa del itinerario">
+        </div>
+        <div class="lightbox-footer">
+            <label class="btn-secondary btn-sm lightbox-cambiar-btn" style="cursor:pointer;">
+                🔄 Cambiar imagen
+                <input type="file" id="mapaFileInputLightbox" accept="image/*" style="display:none;">
+            </label>
         </div>
     </div>
 
