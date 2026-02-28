@@ -59,6 +59,15 @@ function inicializarEventos() {
             modalEliminar.classList.remove('active');
         }
     });
+
+    // Lightbox mapa crucero
+    document.getElementById('btnCerrarLightboxMapa').addEventListener('click', cerrarMapaViaje);
+    document.getElementById('lightboxMapaIndex').addEventListener('click', (e) => {
+        if (e.target === e.currentTarget) cerrarMapaViaje();
+    });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') cerrarMapaViaje();
+    });
 }
 
 // ============================================
@@ -146,6 +155,18 @@ async function cargarViajes() {
                     .eq('viaje_id', viaje.id);
 
                 viaje.documentos_count = countDocumentos || 0;
+
+                // Si tiene crucero, obtener mapa_url
+                viaje.crucero_mapa_url = null;
+                if (viaje.tiene_crucero) {
+                    const { data: crucero } = await supabaseClient
+                        .from('v3_cruceros')
+                        .select('detalles')
+                        .eq('viaje_id', viaje.id)
+                        .limit(1)
+                        .single();
+                    viaje.crucero_mapa_url = crucero?.detalles?.mapa_url || null;
+                }
             }
 
             // Guardar en cache local
@@ -277,6 +298,11 @@ function renderizarViajes() {
                     <button class="btn-editar" onclick="editarViaje('${viaje.link_unico}')" title="Editar viaje">
                         ⚙️
                     </button>
+                    ${viaje.crucero_mapa_url ? `
+                    <div class="card-mapa-thumb" onclick="event.stopPropagation(); abrirMapaViaje('${viaje.crucero_mapa_url}')" title="Ver mapa del itinerario">
+                        <img src="${viaje.crucero_mapa_url}" alt="Mapa itinerario">
+                        <span class="card-mapa-label">🔍 Ruta</span>
+                    </div>` : ''}
                     <h3>${viaje.nombre}</h3>
                     <div class="viaje-fechas">
                         📅 ${formatearFechaLocal(viaje.fecha_inicio)} - ${formatearFechaLocal(viaje.fecha_fin)}
@@ -592,6 +618,19 @@ function calcularProgreso(viaje) {
         const progreso = Math.round((transcurrido / duracionTotal) * 100);
         return Math.min(Math.max(progreso, 0), 100);
     }
+}
+
+// ============================================
+// LIGHTBOX MAPA CRUCERO
+// ============================================
+function abrirMapaViaje(url) {
+    document.getElementById('lightboxMapaImg').src = url;
+    document.getElementById('lightboxMapaIndex').classList.add('show');
+}
+
+function cerrarMapaViaje() {
+    document.getElementById('lightboxMapaIndex').classList.remove('show');
+    document.getElementById('lightboxMapaImg').src = '';
 }
 
 // ============================================
