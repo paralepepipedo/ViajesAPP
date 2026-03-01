@@ -1175,24 +1175,37 @@ async function guardarGasto(e) {
             division_detalle: divisionDetalle
         };
 
+        // ── MODO OFFLINE: guardar en cola local ──────────────────────────
+        if (!navigator.onLine) {
+            guardarEnColaOffline('gasto', gastoEditandoId ? 'editar' : 'crear', gastoData, gastoEditandoId);
+            // Agregar al array local para que se vea en pantalla sin recargar
+            if (!gastoEditandoId) {
+                gastosData.unshift({ ...gastoData, id: 'offline_' + Date.now(), _offline: true });
+            } else {
+                const idx = gastosData.findIndex(g => g.id === gastoEditandoId);
+                if (idx >= 0) gastosData[idx] = { ...gastoData, id: gastoEditandoId, _offline: true };
+            }
+            loadingOverlay.classList.remove('active');
+            cerrarModalGasto();
+            renderizarResumen();
+            filtrarGastos();
+            mostrarNotificacion('📡 Sin conexión — gasto guardado localmente, se sincronizará al conectar', 'warning');
+            return;
+        }
+
+        // ── MODO ONLINE ───────────────────────────────────────────────────
         if (gastoEditandoId) {
-            // Actualizar gasto existente
             const { error } = await supabaseClient
                 .from('v3_gastos')
                 .update(gastoData)
                 .eq('id', gastoEditandoId);
-
             if (error) throw error;
-
             mostrarNotificacion('Gasto actualizado correctamente', 'success');
         } else {
-            // Crear nuevo gasto
             const { error } = await supabaseClient
                 .from('v3_gastos')
                 .insert(gastoData);
-
             if (error) throw error;
-
             mostrarNotificacion('Gasto creado correctamente', 'success');
         }
 
@@ -2501,3 +2514,67 @@ function cerrarModalQuePagara(limpiarSeleccion = false) {
         gastosSeleccionadosPago = [];
     }
 }
+
+// ============================================
+// COLA OFFLINE — guardar y sincronizar
+// ============================================
+const GASTOS_OFFLINE_KEY = 'gastos_offline_queue';
+
+function guardarEnColaOffline(tipo, accion, datos, idExistente = null) {
+    try {
+        const cola = JSON.parse(localStorage.getItem(GASTOS_OFFLINE_KEY) || '[]');
+        cola.push({
+            id:          'q_' + Date.now(),
+            tipo,        // 'gasto' | 'actividad'
+            accion,      // 'crear' | 'editar'
+            datos,
+            idExistente,
+            timestamp:   Date.now()
+        });
+        localStorage.setItem(GASTOS_OFFLINE_KEY, JSON.stringify(cola));
+        console.log(`[Offline] ${accion} ${tipo} encolado. Total pendientes: ${cola.length}`);
+    } catch(e) { console.warn('Error guardando en cola offline:', e); }
+}
+
+async function sincronizarColaOffline() {
+    if (!navigator.onLine) return;
+    const cola = JSON.parse(localStorage.getItem(GASTOS_OFFLINE_KEY) || '[]');
+    if (cola.length === 0) return;
+
+    console.log(`[Offline] Sincronizando ${cola.length} elemento(s) pendiente(s)...`);
+    const errores = [];
+
+    for (const item of cola) {
+        try {
+            if (item.tipo === 'gasto') {
+                if (item.accion === 'crear') {
+                    const { error } = await supabaseClient.from('v3_gastos').insert(item.datos);
+                    if (error) throw error;
+                } else if (item.accion === 'editar' && item.idExistente) {
+                    const { error } = await supabaseClient.from('v3_gastos').update(item.datos).eq('id', item.idExistente);
+                    if (error) throw error;
+                }
+            }
+        } catch(e) {
+            console.warn('[Offline] Error sincronizando item:', e);
+            errores.push(item);
+        }
+    }
+
+    if (errores.length === 0) {
+        localStorage.removeItem(GASTOS_OFFLINE_KEY);
+        mostrarNotificacion('✅ Gastos sincronizados correctamente', 'success');
+    } else {
+        localStorage.setItem(GASTOS_OFFLINE_KEY, JSON.stringify(errores));
+        mostrarNotificacion(`⚠️ ${errores.length} gasto(s) no pudieron sincronizarse`, 'warning');
+    }
+
+    // Recargar datos frescos desde Supabase
+    await cargarGastos();
+}
+
+// Escuchar reconexión y sincronizar automáticamente
+window.addEventListener('online', () => {
+    mostrarNotificacion('🔄 Conexión restaurada — sincronizando gastos...', 'info');
+    sincronizarColaOffline();
+});
