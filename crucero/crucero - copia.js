@@ -20,16 +20,18 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     try {
         const { data: viaje, error } = await supabaseClient
-            .from('v3_viajes').select('id, nombre, tiene_crucero')
-            .eq('link_unico', linkUnico).single();
+            .from('v3_viajes')
+            .select('id, nombre, tiene_crucero')
+            .eq('link_unico', linkUnico)
+            .single();
 
         if (error || !viaje) { mostrarError('Viaje no encontrado.'); return; }
 
         viajeId = viaje.id;
         document.title = `Crucero – ${viaje.nombre}`;
 
-        // destinos y crucero EN PARALELO
-        await Promise.all([cargarDestinos(), cargarCrucero()]);
+        await cargarDestinos();
+        await cargarCrucero();
         inicializarEventos();
 
     } catch (err) {
@@ -43,7 +45,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 // ================================================================
 async function cargarDestinos() {
     const { data } = await supabaseClient
-        .from('v3_destinos').select('id, nombre, moneda_codigo, tipo_cambio_clp')
+        .from('v3_destinos').select('id, nombre')
         .eq('viaje_id', viajeId).order('orden');
     destinos = data || [];
 
@@ -86,16 +88,10 @@ async function cargarCrucero() {
     document.getElementById('cruceroContent').style.display = 'block';
 
     renderHero();
-
-    // Actividades + Puertos + Tours EN PARALELO
-    await Promise.all([
-        cargarActividades(),
-        cargarPuertos(),
-        cargarToursItinerario()
-    ]);
-
+    await cargarActividades();
+    await cargarPuertos();         // ← primero carga puertos (renderPuertos se llama internamente)
+    await cargarToursItinerario(); // ← ahora renderTours() ya tiene puertos disponibles
     renderInfoTab();
-    renderMapa();
 }
 
 async function cargarPuertos() {
@@ -273,29 +269,24 @@ function renderPuertos() {
         const tours = toursDelPuerto(p);
         let toursHtml = '';
         if (tours.length > 0) {
-            toursHtml = `<div class="puerto-tours-section">
-  <div class="puerto-tours-divider"></div>
-  ${tours.map(t => `
-    <div class="puerto-tour-item" onclick="abrirPopupTour('${t.id}')">
-      <span class="pto-icon">🗺️</span>
-      <span class="pto-titulo">${t.titulo}</span>
-      ${t.hora_inicio ? `<span class="pto-hora">${t.hora_inicio}${t.hora_fin ? ' – ' + t.hora_fin : ''}</span>` : ''}
-      <span class="pto-arrow">›</span>
-    </div>`).join('')}
-  <div class="puerto-no-tours" style="margin-top:6px;">
-    <button class="btn-add-tour-inline" onclick="abrirModalNuevoTour('${p.id}')" title="Agregar otro tour">+</button>
-  </div>
-</div>`;
-
+            toursHtml = `
+                <div class="puerto-tours-section">
+                    <div class="puerto-tours-divider"></div>
+                    ${tours.map(t => `
+                        <div class="puerto-tour-item" onclick="abrirPopupTour('${t.id}')">
+                            <span class="pto-icon">🗺️</span>
+                            <span class="pto-titulo">${t.titulo}</span>
+                            ${t.hora_inicio ? `<span class="pto-hora">${t.hora_inicio}${t.hora_fin ? '–' + t.hora_fin : ''}</span>` : ''}
+                            <span class="pto-arrow">→</span>
+                        </div>
+                    `).join('')}
+                </div>`;
         } else {
-            toursHtml = `<div class="puerto-tours-section">
-    <div class="puerto-tours-divider"></div>
-    <div class="puerto-no-tours">
-      Sin tours programados
-      <button class="btn-add-tour-inline" onclick="abrirModalNuevoTour('${p.id}')" title="Agregar tour">+</button>
-    </div>
-  </div>`;
-
+            toursHtml = `
+                <div class="puerto-tours-section">
+                    <div class="puerto-tours-divider"></div>
+                    <div class="puerto-no-tours">🗺️ Sin tours programados</div>
+                </div>`;
         }
 
         return `
@@ -438,15 +429,6 @@ function renderInfoTab() {
     const meta = cruceroData.detalles || {};
     const tipos = { interior: 'Interior', oceanview: 'Vista al Mar', balcony: 'Balcón', suite: 'Suite', suite_royal: 'Suite Royal' };
 
-    const turnosCena = {
-        primer_turno: 'Primer turno',
-        segundo_turno: 'Segundo turno',
-        flexible: 'Flexible (My Dining)'
-    };
-    const cenaLabel = meta.turno_cena
-        ? `${turnosCena[meta.turno_cena] || meta.turno_cena}${meta.horario_cena ? ' · ' + meta.horario_cena : ''}`
-        : null;
-
     const filas = [
         ['🚢 Barco', cruceroData.nombre_barco],
         ['🏢 Naviera', cruceroData.naviera],
@@ -455,7 +437,6 @@ function renderInfoTab() {
         ['🏗️ Deck', meta.deck],
         ['📋 N° Reserva', meta.reserva],
         ['📞 Tel. Naviera', meta.tel_naviera],
-        ['🍽️ Cena', cenaLabel],
         ['🚢 Puerto Salida', meta.puerto_salida],
         ['🏁 Puerto Llegada', meta.puerto_llegada],
     ].filter(([, v]) => v);
@@ -465,78 +446,6 @@ function renderInfoTab() {
     ).join('');
 
     document.getElementById('infoNotas').textContent = cruceroData.notas || 'Sin notas adicionales.';
-}
-
-// ================================================================
-//  MAPA DEL ITINERARIO
-// ================================================================
-function renderMapa() {
-    if (!cruceroData) return;
-    const mapaUrl = cruceroData.detalles?.mapa_url || null;
-
-    const seccion      = document.getElementById('mapaSeccion');
-    const uploadZone   = document.getElementById('mapaUploadZone');
-    const heroThumb    = document.getElementById('heroMapaThumb');
-    const heroImg      = document.getElementById('heroMapaImg');
-    const mapaImg      = document.getElementById('mapaItinerarioImg');
-    const lightboxImg  = document.getElementById('lightboxImg');
-
-    if (mapaUrl) {
-        // Hay imagen: mostrar toggle + miniatura en hero
-        seccion.style.display    = 'block';
-        uploadZone.style.display = 'none';
-        heroThumb.style.display  = 'flex';
-        heroImg.src              = mapaUrl;
-        mapaImg.src              = mapaUrl;
-        if (lightboxImg) lightboxImg.src = mapaUrl;
-    } else {
-        // Sin imagen: mostrar zona de upload
-        seccion.style.display    = 'none';
-        uploadZone.style.display = 'flex';
-        heroThumb.style.display  = 'none';
-    }
-}
-
-async function subirMapaItinerario(file) {
-    if (!file || !cruceroId) return;
-    mostrarNotificacion('Subiendo imagen...', 'info');
-
-    const ext  = file.name.split('.').pop().toLowerCase();
-    const path = `cruceros/${cruceroId}/mapa_itinerario.${ext}`;
-
-    const { error: upError } = await supabaseClient.storage
-        .from('viajes-docs')
-        .upload(path, file, { upsert: true });
-
-    if (upError) { mostrarNotificacion('Error al subir imagen', 'error'); return; }
-
-    const { data: urlData } = supabaseClient.storage
-        .from('viajes-docs')
-        .getPublicUrl(path);
-
-    const detallesActualizados = { ...(cruceroData.detalles || {}), mapa_url: urlData.publicUrl };
-
-    const { error: dbError } = await supabaseClient
-        .from('v3_cruceros')
-        .update({ detalles: detallesActualizados })
-        .eq('id', cruceroId);
-
-    if (dbError) { mostrarNotificacion('Error al guardar URL', 'error'); return; }
-
-    cruceroData.detalles = detallesActualizados;
-    mostrarNotificacion('Mapa guardado ✓', 'success');
-    renderMapa();
-}
-
-function abrirLightbox() {
-    const url = cruceroData?.detalles?.mapa_url;
-    if (!url) return;
-    document.getElementById('lightboxImg').src = url;
-    document.getElementById('lightboxMapa').classList.add('show');
-}
-
-function cerrarLightbox() {
-    document.getElementById('lightboxMapa').classList.remove('show');
 }
 
 function poblarFiltroFechas() {
@@ -574,113 +483,6 @@ function irATabTours() {
     document.querySelectorAll('.ctab-content').forEach(c => c.classList.remove('active'));
     document.querySelector('.ctab[data-tab="tours"]').classList.add('active');
     document.getElementById('tab-tours').classList.add('active');
-}
-// ================================================================
-// MODAL NUEVO TOUR DESDE CRUCERO
-// ================================================================
-
-function abrirModalNuevoTour(puertoId) {
-    const puerto = puertos.find(p => p.id === puertoId);
-    if (!puerto) return;
-
-    // Extraer fecha del puerto en formato YYYY-MM-DD (Chile local)
-    const fechaRef = puerto.fecha_llegada || puerto.fecha_salida;
-    let fechaTour = '';
-    if (fechaRef) {
-        fechaTour = new Intl.DateTimeFormat('en-CA', {
-            timeZone: 'America/Santiago',
-            year: 'numeric', month: '2-digit', day: '2-digit'
-        }).format(new Date(fechaRef));
-    }
-
-    // Destino vinculado al puerto (si tiene)
-    const destinoId = puerto.destino_id || '';
-
-    // Llenar el formulario del modal
-    document.getElementById('ntFecha').value = fechaTour;
-    document.getElementById('ntDestinoId').value = destinoId;
-    document.getElementById('ntPuertoId').value = puertoId;
-    document.getElementById('ntTitulo').value = '';
-    document.getElementById('ntCosto').value = '';
-
-    // Llenar select de moneda con los destinos disponibles
-    const selectMoneda = document.getElementById('ntMoneda');
-    selectMoneda.innerHTML = '';
-    const monedasVistas = new Set();
-    destinos.forEach(d => { if (d.moneda_codigo) monedasVistas.add(d.moneda_codigo); });
-    // CLP siempre disponible como fallback
-    monedasVistas.add('CLP');
-    monedasVistas.forEach(m => {
-        const opt = document.createElement('option');
-        opt.value = m; opt.textContent = m;
-        selectMoneda.appendChild(opt);
-    });
-
-    // Preseleccionar: primero intenta la moneda del destino vinculado al puerto,
-    // si no tiene, usa la moneda del primer destino del viaje
-    let monedaDefault = 'CLP';
-    if (destinoId) {
-        const dest = destinos.find(d => d.id === destinoId);
-        if (dest?.moneda_codigo) monedaDefault = dest.moneda_codigo;
-    } else if (destinos.length > 0 && destinos[0].moneda_codigo) {
-        monedaDefault = destinos[0].moneda_codigo;
-    }
-    selectMoneda.value = monedaDefault;
-
-    // Nombre del puerto como referencia visual
-    document.getElementById('ntNombrePuerto').textContent =
-        `${puerto.nombre_puerto} · ${fechaTour ? fechaCorta(fechaTour) : ''}`;
-
-    abrirModal('modalNuevoTour');
-}
-
-async function guardarNuevoTour(e) {
-    e.preventDefault();
-    const btn = e.submitter;
-    btn.disabled = true;
-    btn.textContent = 'Guardando...';
-
-    const puertoId = document.getElementById('ntPuertoId').value;
-
-    try {
-        const payload = {
-            viaje_id: viajeId,
-            titulo: document.getElementById('ntTitulo').value.trim(),
-            fecha: document.getElementById('ntFecha').value,
-            categoria: 'Tour',
-            destino_id: document.getElementById('ntDestinoId').value || null,
-            costo_estimado: parseFloat(document.getElementById('ntCosto').value) || null,
-            costo_moneda: document.getElementById('ntMoneda').value || 'CLP',
-            vinculado_crucero: true,
-            hora_inicio: null,
-            hora_fin: null,
-            descripcion: null
-        };
-
-        const { error } = await supabaseClient.from('v3_itinerario').insert(payload);
-        if (error) throw error;
-
-        cerrarModal('modalNuevoTour');
-
-        // Recargar y hacer scroll al grupo del puerto donde se creó
-        await cargarToursItinerario();
-        // Pequeño delay para que el DOM se actualice, luego scroll
-        setTimeout(() => {
-            const grupos = document.querySelectorAll('.tours-destino-group');
-            // Buscar el grupo que corresponde al puerto por posición (orden)
-            const idx = puertos.findIndex(p => p.id === puertoId);
-            if (grupos[idx]) {
-                grupos[idx].scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }
-        }, 150);
-
-    } catch (err) {
-        console.error(err);
-        mostrarNotificacion('Error al guardar el tour: ' + (err.message || JSON.stringify(err)), 'error');
-    } finally {
-        btn.disabled = false;
-        btn.textContent = '💾 Guardar';
-    }
 }
 
 // ================================================================
@@ -734,42 +536,6 @@ function inicializarEventos() {
     document.querySelectorAll('.modal-overlay').forEach(m => {
         m.addEventListener('click', e => { if (e.target === m) cerrarModal(m.id); });
     });
-
-    // Nuevo Tour desde crucero
-    document.getElementById('btnCerrarModalNuevoTour')?.addEventListener('click', () => cerrarModal('modalNuevoTour'));
-    document.getElementById('btnCancelarNuevoTour')?.addEventListener('click', () => cerrarModal('modalNuevoTour'));
-    document.getElementById('formNuevoTour')?.addEventListener('submit', guardarNuevoTour);
-    document.getElementById('modalNuevoTour')?.addEventListener('click', e => {
-        if (e.target === e.currentTarget) cerrarModal('modalNuevoTour');
-    });
-
-    // Mapa itinerario — toggle colapsable
-    document.getElementById('btnToggleMapa')?.addEventListener('click', () => {
-        const col   = document.getElementById('mapaColapsable');
-        const arrow = document.querySelector('.mapa-toggle-arrow');
-        const open  = col.classList.toggle('open');
-        arrow.textContent = open ? '▲' : '▼';
-    });
-
-    // Mapa — subir imagen (zona upload + lightbox)
-    document.getElementById('mapaFileInput')?.addEventListener('change', e => {
-        const f = e.target.files[0]; if (f) subirMapaItinerario(f);
-    });
-    document.getElementById('mapaFileInputLightbox')?.addEventListener('change', e => {
-        const f = e.target.files[0]; if (f) { cerrarLightbox(); subirMapaItinerario(f); }
-    });
-
-    // Mapa — zoom / lightbox
-    document.getElementById('btnZoomMapa')?.addEventListener('click', abrirLightbox);
-    document.getElementById('heroMapaThumb')?.addEventListener('click', abrirLightbox);
-    document.getElementById('btnCerrarLightbox')?.addEventListener('click', cerrarLightbox);
-    document.getElementById('lightboxMapa')?.addEventListener('click', e => {
-        if (e.target === e.currentTarget || e.target.id === 'lightboxMapa') cerrarLightbox();
-    });
-
-    // ESC cierra lightbox
-    document.addEventListener('keydown', e => { if (e.key === 'Escape') cerrarLightbox(); });
-
 }
 
 function actualizarCamposPuerto() {
@@ -796,8 +562,6 @@ function abrirModalCrucero() {
         document.getElementById('crucNumReserva').value = meta.reserva || '';
         document.getElementById('crucDeck').value = meta.deck || '';
         document.getElementById('crucTelNaviera').value = meta.tel_naviera || '';
-        document.getElementById('crucTurnoCena').value = meta.turno_cena || '';
-        document.getElementById('crucHorarioCena').value = meta.horario_cena || '';
         document.getElementById('crucNotas').value = cruceroData.notas || '';
         document.getElementById('modalCruceroTitulo').textContent = 'Editar Crucero';
     } else {
@@ -886,10 +650,7 @@ async function guardarCrucero(e) {
                 puerto_llegada: document.getElementById('crucPuertoLlegada').value.trim() || null,
                 reserva: document.getElementById('crucNumReserva').value.trim() || null,
                 deck: document.getElementById('crucDeck').value.trim() || null,
-                tel_naviera: document.getElementById('crucTelNaviera').value.trim() || null,
-                turno_cena: document.getElementById('crucTurnoCena').value || null,
-                horario_cena: document.getElementById('crucHorarioCena').value.trim() || null,
-                mapa_url: cruceroData?.detalles?.mapa_url || null
+                tel_naviera: document.getElementById('crucTelNaviera').value.trim() || null
             }
         };
 

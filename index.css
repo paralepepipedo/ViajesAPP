@@ -37,72 +37,227 @@ body {
 /* ============================================
    HERO SECTION
    ============================================ */
+/* ============================================
+   HERO — Desktop D3: franja slim todo en una línea
+   ============================================ */
 .hero {
-    background: linear-gradient(135deg, rgba(102, 126, 234, 0.95) 0%, rgba(118, 75, 162, 0.95) 100%);
-    padding: 4rem 2rem;
-    text-align: center;
-    color: white;
+    background: linear-gradient(135deg, rgba(102,126,234,.97) 0%, rgba(118,75,162,.97) 100%);
+    padding: .55rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: .85rem;
+    min-height: 56px;
+    position: relative;
 }
 
-.hero-content {
-    max-width: 800px;
-    margin: 0 auto;
+/* Logo con bordes redondeados y fade para mezclar con fondo */
+.hero-logo-wrap {
+    position: relative;
+    height: 46px;
+    flex-shrink: 0;
+    border-radius: 12px;
+    overflow: hidden;
+}
+.hero-logo {
+    height: 46px;
+    width: auto;
+    display: block;
+    object-fit: contain;
+    border-radius: 12px;
+}
+/* overlay degradado que funde los bordes con el morado del hero */
+.hero-logo-wrap::after {
+    content: '';
+    position: absolute; inset: 0;
+    border-radius: 12px;
+    background:
+        linear-gradient(to right,  rgba(102,126,234,.55) 0%, transparent 30%, transparent 70%, rgba(118,75,162,.55) 100%),
+        linear-gradient(to bottom, rgba(102,126,234,.4)  0%, transparent 35%, transparent 65%, rgba(118,75,162,.4)  100%);
+    pointer-events: none;
+}
+
+.hero-sep {
+    width: 1px;
+    height: 22px;
+    background: rgba(255,255,255,.25);
+    flex-shrink: 0;
 }
 
 .hero-title {
-    font-size: 3rem;
-    margin-bottom: 1rem;
-    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-    animation: fadeInDown 0.6s;
+    font-size: .9rem;
+    font-weight: 800;
+    color: white;
+    white-space: nowrap;
+    flex-shrink: 0;
+    margin: 0;
+    text-shadow: none;
+    animation: none;
 }
 
-.hero-subtitle {
-    font-size: 1.25rem;
-    margin-bottom: 2rem;
-    opacity: 0.95;
-    animation: fadeInUp 0.6s;
+/* búsqueda y filtros integrados en el hero */
+.hero-search {
+    flex: 1;
+    min-width: 0;
+    padding: .38rem .85rem;
+    border-radius: 20px;
+    border: none;
+    background: rgba(255,255,255,.18);
+    color: white;
+    font-size: .8rem;
+    outline: none;
+    font-family: inherit;
 }
+.hero-search::placeholder { color: rgba(255,255,255,.65); }
+.hero-search:focus { background: rgba(255,255,255,.26); }
+
+.hero-select {
+    padding: .38rem .7rem;
+    border-radius: 20px;
+    border: none;
+    background: rgba(255,255,255,.18);
+    color: white;
+    font-size: .78rem;
+    cursor: pointer;
+    flex-shrink: 0;
+    font-family: inherit;
+}
+.hero-select option { color: #333; background: white; }
 
 .btn-hero {
     background: white;
-    color: var(--primary);
-    padding: 1rem 3rem;
-    border-radius: var(--radius);
+    color: #667eea;
+    padding: .38rem .9rem;
+    border-radius: 20px;
     text-decoration: none;
-    font-weight: 600;
-    font-size: 1.1rem;
+    font-weight: 700;
+    font-size: .78rem;
+    white-space: nowrap;
+    flex-shrink: 0;
     display: inline-block;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-    transition: all 0.3s;
-    animation: fadeInUp 0.8s;
+    box-shadow: 0 2px 8px rgba(0,0,0,.15);
+    transition: box-shadow .2s, transform .2s;
+    animation: none;
 }
-
 .btn-hero:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.3);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(0,0,0,.2);
 }
 
-@keyframes fadeInDown {
-    from {
-        opacity: 0;
-        transform: translateY(-30px);
+/* Ocultar hero-content y hero-subtitle — ya no se usan en desktop */
+.hero-content { display: none; }
+.hero-subtitle { display: none; }
+
+/* ── Móvil M2a: imagen de fondo con overlay ── */
+@media (max-width: 768px) {
+    /* ── Hero: imagen de fondo + overlay + contenido ── */
+    .hero {
+        padding: 0;
+        min-height: 110px;
+        display: block;
+        position: relative;
+        overflow: hidden;
+        background: none;
+    }
+    /* imagen de fondo */
+    .hero::before {
+        content: '';
+        position: absolute; inset: 0;
+        background-image: url('web-app-manifest-512x434.png');
+        background-size: cover;
+        background-position: center top;
+        z-index: 0;
+    }
+    /* overlay degradado */
+    .hero::after {
+        content: '';
+        position: absolute; inset: 0;
+        background: linear-gradient(to bottom, rgba(102,126,234,.45) 0%, rgba(30,27,75,.82) 100%);
+        z-index: 1;
+    }
+    /* ocultar todos los elementos desktop */
+    .hero-logo-wrap,
+    .hero-sep,
+    .hero-title,
+    .hero-search,
+    .hero-select { display: none !important; }
+
+    /* mostrar contenido móvil */
+    .hero-content {
+        display: flex !important;
+        position: relative; z-index: 2;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: .5rem;
+        padding: .75rem .9rem;
+        min-height: 110px;
+    }
+    .hero-text-mobile { flex: 1; }
+    .hero-title-mobile {
+        font-size: .95rem; font-weight: 900;
+        background: linear-gradient(90deg, #fbbf24, #f87171, #a78bfa);
+        -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        background-clip: text; line-height: 1.2;
+    }
+    .hero-subtitle-mobile { font-size: .6rem; color: rgba(255,255,255,.82); margin-top: .15rem; }
+    .btn-hero {
+        padding: .32rem .75rem; font-size: .68rem;
+        flex-shrink: 0; align-self: flex-end;
     }
 
-    to {
-        opacity: 1;
-        transform: translateY(0);
+    /* ── Controles móvil: UNA sola línea ── */
+    .controles {
+        display: flex !important;
+        flex-wrap: nowrap;
+        align-items: center;
+        gap: .4rem;
+        padding: .45rem .65rem;
+        border-bottom: 1px solid #f1f5f9;
+        margin-bottom: .75rem;
+        box-shadow: 0 2px 6px rgba(0,0,0,.06);
+        position: relative;
     }
-}
-
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(30px);
+    /* búsqueda oculta, aparece sobre la barra al expandir */
+    .search-box {
+        display: none;
+        position: absolute;
+        top: 100%; left: 0; right: 0;
+        z-index: 20;
+        padding: .4rem .65rem;
+        background: white;
+        border-bottom: 2px solid #667eea;
+        box-shadow: 0 4px 12px rgba(0,0,0,.12);
     }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
+    .search-box.expanded { display: block; }
+    .search-box input {
+        width: 100%;
+        padding: .38rem .7rem;
+        border: 1.5px solid #667eea;
+        border-radius: 7px;
+        font-size: .82rem;
+        outline: none;
+    }
+    /* botón lupa */
+    .search-toggle-btn {
+        display: flex !important;
+        align-items: center; justify-content: center;
+        background: #eef2ff; border: none;
+        width: 30px; height: 30px; min-width: 30px;
+        border-radius: 7px; font-size: .85rem;
+        cursor: pointer; color: #667eea; flex-shrink: 0;
+    }
+    /* selects: flex en una línea */
+    .filtros {
+        flex: 1;
+        flex-wrap: nowrap;
+    }
+    .filtros select {
+        flex: 1;
+        padding: .32rem .35rem;
+        font-size: .71rem;
+        min-width: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 }
 
@@ -111,86 +266,118 @@ body {
    ============================================ */
 .container {
     max-width: 1400px;
-    margin: -3rem auto 2rem;
-    padding: 0 1.5rem;
+    margin: 0 auto;
+    padding: 1.25rem 1.5rem;
     position: relative;
     z-index: 1;
 }
 
+@media (max-width: 768px) {
+    .container { padding: .75rem .75rem; }
+    /* para que el search box absoluto se posicione relativo al wrapper */
+    #controlesBar { position: relative; }
+}
+
 /* ============================================
-   OFFLINE BANNER
+   SKELETON LOADING
+   ============================================ */
+@keyframes shimmer {
+    0%   { background-position: -400px 0; }
+    100% { background-position:  400px 0; }
+}
+.skeleton-card {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0,0,0,.08);
+}
+.sk-header {
+    height: 72px;
+    background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%);
+    background-size: 400px 100%;
+    animation: shimmer 1.4s infinite;
+}
+.sk-bar {
+    height: 3px;
+    background: #e2e8f0;
+}
+.sk-stats {
+    display: flex;
+    border-bottom: 1px solid #f3f4f6;
+}
+.sk-stat {
+    flex: 1;
+    height: 44px;
+    margin: .45rem .3rem;
+    border-radius: 6px;
+    background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%);
+    background-size: 400px 100%;
+    animation: shimmer 1.4s infinite;
+}
+.sk-footer {
+    height: 38px;
+    margin: .5rem .75rem;
+    border-radius: 6px;
+    background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%);
+    background-size: 400px 100%;
+    animation: shimmer 1.4s infinite;
+}
+
+/* ============================================
+   OFFLINE BANNER — actualizado para sync
    ============================================ */
 .offline-banner {
-    background: var(--warning);
+    background: #f59e0b;
     color: white;
-    padding: 1rem;
+    padding: .6rem 1rem;
     border-radius: var(--radius);
-    margin-bottom: 1.5rem;
+    margin-bottom: 1rem;
     display: none;
     align-items: center;
-    gap: 0.75rem;
-    box-shadow: var(--shadow);
+    gap: .6rem;
+    font-size: .82rem;
+    font-weight: 600;
 }
-
-.offline-banner.show {
-    display: flex;
-}
-
-.offline-icon {
-    font-size: 1.5rem;
-}
+.offline-banner.show { display: flex; }
 
 /* ============================================
    CONTROLES
+   Desktop: oculto (filtros están en el hero)
+   Móvil: visible, una sola línea
    ============================================ */
 .controles {
+    display: none; /* oculto en desktop — los filtros van en el hero */
     background: white;
-    padding: 1.5rem;
-    border-radius: var(--radius);
-    box-shadow: var(--shadow-lg);
-    margin-bottom: 2rem;
-    display: flex;
-    gap: 1rem;
-    flex-wrap: wrap;
-    align-items: center;
+    margin-bottom: 1rem;
 }
 
-.search-box {
-    flex: 1;
-    min-width: 250px;
-}
-
+/* search-box oculto por defecto — se muestra solo en móvil cuando se expande */
+.search-box { display: none; }
 .search-box input {
     width: 100%;
-    padding: 0.75rem 1rem;
-    border: 2px solid var(--border);
-    border-radius: var(--radius);
-    font-size: 1rem;
-    transition: all 0.3s;
-}
-
-.search-box input:focus {
+    padding: .38rem .7rem;
+    border: 1.5px solid #667eea;
+    border-radius: 7px;
+    font-size: .82rem;
     outline: none;
-    border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    font-family: inherit;
 }
 
 .filtros {
     display: flex;
-    gap: 1rem;
-    flex-wrap: wrap;
+    gap: .4rem;
+    flex: 1;
 }
-
 .filtros select {
-    padding: 0.75rem 1rem;
-    border: 2px solid var(--border);
-    border-radius: var(--radius);
-    font-size: 1rem;
+    flex: 1;
+    padding: .35rem .5rem;
+    border: 1.5px solid var(--border);
+    border-radius: 7px;
+    font-size: .78rem;
     cursor: pointer;
-    transition: all 0.3s;
     background: white;
+    min-width: 0;
 }
-
 .filtros select:focus {
     outline: none;
     border-color: var(--primary);
@@ -201,358 +388,291 @@ body {
    ============================================ */
 .viajes-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
-    gap: 1.5rem;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: .85rem;
     margin-bottom: 2rem;
 }
 
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Card ── */
 .viaje-card {
     background: white;
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
+    border-radius: 12px;
     overflow: hidden;
-    transition: all 0.3s;
+    box-shadow: 0 4px 20px rgba(0,0,0,.15);
     cursor: pointer;
+    transition: transform .2s, box-shadow .2s;
+    animation: fadeIn 0.4s;
     position: relative;
-    animation: fadeIn 0.5s;
 }
-
 .viaje-card:hover {
-    transform: translateY(-8px) scale(1.02);
-    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 28px rgba(0,0,0,.2);
 }
 
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
+/* ── Header con color por estado ── */
 .viaje-header {
-    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-    color: white;
-    padding: 1.25rem;
+    padding: .7rem .9rem .6rem;
+    display: flex;
+    align-items: flex-start;
+    gap: .65rem;
     position: relative;
 }
+.viaje-header.proximo   { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; }
+.viaje-header.en-curso  { background: linear-gradient(135deg, #10b981, #059669); color: white; }
+.viaje-header.finalizado{ background: linear-gradient(135deg, #64748b, #475569); color: white; }
 
-.viaje-header h3 {
-    font-size: 1.4rem;
-    margin-bottom: 0.5rem;
-    padding-right: 40px;
-}
-
-.viaje-fechas {
-    font-size: 0.875rem;
-    opacity: 0.95;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.btn-editar {
-    position: absolute;
-    top: 1rem;
-    right: 1rem;
-    background: rgba(255, 255, 255, 0.2);
-    border: none;
-    color: white;
-    width: 35px;
-    height: 35px;
-    border-radius: 50%;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.1rem;
-    transition: all 0.3s;
-}
-
-.btn-editar:hover {
-    background: rgba(255, 255, 255, 0.3);
-    transform: rotate(90deg);
-}
-
-.viaje-body {
-    padding: 1rem;
-}
-
-/* Badges de tipo de viaje */
-.viaje-badges {
-    display: flex;
-    gap: 0.5rem;
-    margin-bottom: 1rem;
-    flex-wrap: wrap;
-}
-
-.tipo-badge {
-    padding: 0.35rem 0.75rem;
-    border-radius: 20px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-}
-
-.badge-crucero {
-    background: #dbeafe;
-    color: #1e40af;
-}
-
-.badge-playa {
-    background: #fef3c7;
-    color: #92400e;
-}
-
-.badge-ciudad {
-    background: #e0e7ff;
-    color: #4338ca;
-}
-
-.badge-aventura {
-    background: #d1fae5;
-    color: #065f46;
-}
-
-.badge-montana {
-    background: #f3e8ff;
-    color: #6b21a8;
-}
-
-/* Estado del viaje con días destacados */
-.viaje-estado {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 1rem;
-    padding: 1rem;
-    background: linear-gradient(135deg, #f0f4ff 0%, #e8f0fe 100%);
-    border-radius: var(--radius);
-    border-left: 4px solid var(--primary);
-}
-
-.estado-info {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-}
-
-.estado-badge {
-    padding: 0.4rem 0.9rem;
-    border-radius: 20px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    white-space: nowrap;
-}
-
-.badge-proximo {
-    background: #dbeafe;
-    color: var(--info);
-}
-
-.badge-en-curso {
-    background: #d1fae5;
-    color: var(--success);
-}
-
-.badge-finalizado {
-    background: #f3f4f6;
-    color: var(--text-gray);
-}
-
-.dias-container {
-    text-align: right;
-}
-
-.dias-restantes {
-    font-size: 2.5rem;
-    font-weight: 800;
-    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    line-height: 1;
-    margin-bottom: 0.25rem;
-}
-
-.dias-label {
-    font-size: 0.8rem;
-    color: var(--text-gray);
-    font-weight: 600;
-}
-
-/* Alerta de pendientes */
-.alerta-pendientes {
-    background: #fef3c7;
-    border-left: 4px solid var(--warning);
-    padding: 0.75rem;
-    border-radius: var(--radius);
-    margin-bottom: 1rem;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.85rem;
-    color: #92400e;
-}
-
-.alerta-pendientes strong {
-    font-weight: 700;
-}
-
-/* Info compacta */
-.viaje-info {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0.75rem;
-    margin-bottom: 1rem;
-}
-
-.info-item {
+/* Bloque días — siempre a la izquierda */
+.viaje-header-dias {
+    flex-shrink: 0;
+    text-align: center;
+    padding-right: .65rem;
+    border-right: 1px solid rgba(255,255,255,.25);
     display: flex;
     flex-direction: column;
-    gap: 0.25rem;
-}
-
-.info-label {
-    font-size: 0.8rem;
-    color: var(--text-gray);
-}
-
-.info-value {
-    font-weight: 600;
-    color: var(--text-dark);
-    display: flex;
     align-items: center;
-    gap: 0.4rem;
-    font-size: 0.95rem;
+    justify-content: center;
 }
-
-/* Iconos de transporte con estado */
-.transportes-estado {
-    display: flex;
-    gap: 0.5rem;
-    margin-top: 1rem;
-    padding-top: 1rem;
-    border-top: 1px solid var(--border);
-}
-
-.transporte-icon-estado {
-    position: relative;
+.viaje-dias-num {
     font-size: 1.8rem;
-    transition: transform 0.3s;
+    font-weight: 800;
+    color: white;
+    line-height: 1;
+}
+.viaje-dias-lbl {
+    font-size: .55rem;
+    opacity: .75;
+    white-space: nowrap;
+    color: white;
+    text-align: center;
+    margin-top: .1rem;
 }
 
-.transporte-icon-estado:hover {
-    transform: scale(1.2);
+/* Bloque nombre/fecha/tipos — siempre a la derecha del número */
+.viaje-header-left { flex: 1; min-width: 0; }
+.viaje-nombre {
+    font-size: .95rem;
+    font-weight: 700;
+    color: white;
+    padding-right: 2rem; /* espacio para engranaje */
+}
+.viaje-fechas {
+    font-size: .68rem;
+    opacity: .82;
+    margin-top: .1rem;
+    color: white;
+}
+.viaje-tipos {
+    display: flex;
+    gap: .28rem;
+    flex-wrap: wrap;
+    margin-top: .28rem;
+}
+.viaje-tipo {
+    font-size: .58rem;
+    font-weight: 700;
+    padding: .1rem .35rem;
+    border-radius: 20px;
+    background: rgba(255,255,255,.2);
+    color: white;
 }
 
-.transporte-icon-estado.completo::after {
-    content: '✓';
+/* Badge estado — solo desktop, debajo de tipos */
+.viaje-estado-badge {
+    font-size: .6rem;
+    font-weight: 700;
+    padding: .1rem .4rem;
+    border-radius: 20px;
+    background: rgba(255,255,255,.22);
+    color: white;
+    display: inline-block;
+    margin-top: .28rem;
+}
+
+/* Bloque right — oculto, ya no se usa */
+.viaje-header-right { display: none; }
+
+/* Engranaje — absolute top-right sin interferir */
+.btn-editar {
     position: absolute;
-    top: -4px;
-    right: -4px;
-    background: var(--success);
-    color: white;
-    font-size: 0.7rem;
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    border: 2px solid white;
-}
-
-.transporte-icon-estado.pendiente::after {
-    content: '⚠';
-    position: absolute;
-    top: -4px;
-    right: -4px;
-    background: var(--danger);
-    color: white;
-    font-size: 0.7rem;
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    border: 2px solid white;
-}
-
-.viaje-progress {
-    margin-top: 1rem;
-    padding-top: 1rem;
-    border-top: 2px solid var(--border);
-}
-
-.progress-label {
-    font-size: 0.8rem;
-    color: var(--text-gray);
-    margin-bottom: 0.5rem;
-    display: flex;
-    justify-content: space-between;
-}
-
-.progress-bar-container {
-    background: var(--bg-light);
-    height: 8px;
-    border-radius: 10px;
-    overflow: hidden;
-}
-
-.progress-bar {
-    height: 100%;
-    background: linear-gradient(90deg, var(--primary) 0%, var(--secondary) 100%);
-    border-radius: 10px;
-    transition: width 0.5s;
-}
-
-.viaje-footer {
-    padding: 1rem;
-    background: var(--bg-light);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.btn-ver {
-    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-    color: white;
-    padding: 0.5rem 1.5rem;
+    top: .55rem;
+    right: .55rem;
+    background: rgba(255,255,255,.2);
     border: none;
-    border-radius: var(--radius);
+    color: white;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: .82rem;
+    transition: background .2s;
+    z-index: 2;
+}
+.btn-editar:hover { background: rgba(255,255,255,.35); }
+
+/* Miniatura mapa — absolute debajo del engranaje, top-right */
+.card-mapa-thumb {
+    position: absolute;
+    top: 2rem;
+    right: .5rem;
+    width: 42px;
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1.5px solid rgba(255,255,255,.4);
+    cursor: pointer;
+    z-index: 2;
+    transition: border-color .15s, transform .15s;
+}
+.card-mapa-thumb:hover {
+    border-color: white;
+    transform: scale(1.06);
+}
+.card-mapa-thumb img {
+    width: 100%;
+    height: 30px;
+    object-fit: cover;
+    display: block;
+}
+.card-mapa-label {
+    background: rgba(0,0,0,.45);
+    color: white;
+    font-size: .45rem;
+    font-weight: 700;
+    text-align: center;
+    padding: .1rem 0;
+    display: block;
+    letter-spacing: .03em;
+}
+
+/* ── Barra de progreso ── */
+.viaje-prog-bar { height: 3px; background: #e5e7eb; }
+.viaje-prog-fill { height: 100%; }
+.viaje-header.proximo    ~ .viaje-prog-bar .viaje-prog-fill { background: linear-gradient(90deg, var(--primary), var(--secondary)); }
+.viaje-header.en-curso   ~ .viaje-prog-bar .viaje-prog-fill { background: linear-gradient(90deg, #10b981, #059669); }
+.viaje-header.finalizado ~ .viaje-prog-bar .viaje-prog-fill { background: #64748b; }
+
+/* ── Strip de stats ── */
+.viaje-stats {
+    display: flex;
+    border-bottom: 1px solid #f3f4f6;
+}
+.viaje-stat {
+    flex: 1;
+    text-align: center;
+    padding: .45rem .3rem;
+    border-right: 1px solid #f3f4f6;
+}
+.viaje-stat:last-child { border-right: none; }
+.viaje-stat-val { font-size: .85rem; font-weight: 700; color: var(--text-dark); display: block; }
+.viaje-stat-lbl { font-size: .58rem; color: #9ca3af; display: block; }
+
+/* ── Footer con links directos ── */
+.viaje-footer {
+    padding: .5rem .75rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .4rem;
+    background: #fafafa;
+}
+.viaje-links { display: flex; gap: .28rem; flex-wrap: wrap; }
+.viaje-link {
+    font-size: .62rem;
     font-weight: 600;
-    transition: all 0.3s;
+    color: var(--primary);
+    background: #eef2ff;
+    border: none;
+    padding: .18rem .42rem;
+    border-radius: 5px;
+    cursor: pointer;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background .12s;
 }
+.viaje-link:hover { background: #e0e7ff; }
+.viaje-link.gastos { color: #065f46; background: #d1fae5; }
+.viaje-link.mapa   { color: #0369a1; background: #e0f2fe; }
 
-.btn-ver:hover {
-    transform: scale(1.05);
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+.viaje-footer-actions { display: flex; gap: .25rem; align-items: center; }
+.btn-ver {
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: white;
+    border: none;
+    padding: .27rem .7rem;
+    border-radius: 6px;
+    font-size: .7rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity .2s;
 }
-
+.btn-ver:hover { opacity: .88; }
 .btn-eliminar-card {
     background: none;
     border: none;
     color: var(--danger);
     cursor: pointer;
-    font-size: 1.2rem;
-    padding: 0.5rem;
-    transition: all 0.3s;
+    font-size: 1rem;
+    padding: .2rem .3rem;
+    transition: transform .2s;
+}
+.btn-eliminar-card:hover { transform: scale(1.15); }
+
+/* alerta pendientes */
+.alerta-pendientes {
+    background: #fef3c7;
+    border-left: 3px solid var(--warning);
+    padding: .45rem .75rem;
+    font-size: .75rem;
+    color: #92400e;
+    display: flex;
+    align-items: center;
+    gap: .4rem;
 }
 
-.btn-eliminar-card:hover {
-    transform: scale(1.2);
+/* ── Modal confirmación eliminar ── */
+.modal-eliminar-confirm {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.55);
+    z-index: 10001;
+    align-items: center;
+    justify-content: center;
 }
+.modal-eliminar-confirm.active { display: flex; }
+.modal-eliminar-box {
+    background: white;
+    border-radius: 14px;
+    padding: 1.5rem;
+    width: 90%;
+    max-width: 320px;
+    box-shadow: 0 20px 50px rgba(0,0,0,.3);
+    animation: popIn .2s ease;
+    text-align: center;
+}
+@keyframes popIn {
+    from { transform: scale(.9); opacity: 0; }
+    to   { transform: scale(1);  opacity: 1; }
+}
+.modal-eliminar-icon  { font-size: 2rem; margin-bottom: .5rem; }
+.modal-eliminar-titulo{ font-size: 1rem; font-weight: 700; color: var(--text-dark); margin-bottom: .35rem; }
+.modal-eliminar-texto { font-size: .8rem; color: var(--text-gray); line-height: 1.5; margin-bottom: 1.1rem; }
+.modal-eliminar-btns  { display: flex; gap: .65rem; }
+.modal-eliminar-btns button {
+    flex: 1; padding: .55rem;
+    border-radius: 8px; font-size: .82rem;
+    font-weight: 700; cursor: pointer; border: none;
+    font-family: inherit;
+}
+.btn-cancel-confirm { background: #f3f4f6; color: #4b5563; }
+.btn-ok-confirm     { background: var(--danger); color: white; }
 
 /* ============================================
    ESTADO VACÍO
@@ -756,56 +876,20 @@ body {
 }
 
 /* ============================================
-   RESPONSIVE
+   RESPONSIVE — cards grid
    ============================================ */
 @media (max-width: 768px) {
-    .hero-title {
-        font-size: 2rem;
-    }
-
-    .hero-subtitle {
-        font-size: 1rem;
-    }
-
-    .controles {
-        flex-direction: column;
-    }
-
-    .search-box {
-        width: 100%;
-    }
-
-    .filtros {
-        width: 100%;
-        flex-direction: column;
-    }
-
-    .filtros select {
-        width: 100%;
-    }
-
-    .viajes-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .viaje-info {
-        grid-template-columns: 1fr;
-    }
-
-    .dias-restantes {
-        font-size: 2rem;
-    }
+    .viajes-grid { grid-template-columns: 1fr; gap: .6rem; }
+    .viaje-dias-num  { font-size: 1.5rem; }
+    .viaje-nombre    { font-size: .88rem; }
+    .viaje-fechas    { font-size: .62rem; }
+    .viaje-stat-val  { font-size: .78rem; }
+    .viaje-stat-lbl  { font-size: .54rem; }
+    .viaje-link      { font-size: .59rem; }
+    .btn-ver         { font-size: .66rem; padding: .22rem .6rem; }
+    .viaje-estado-badge { display: none; }
 }
 
-.hero-logo {
-    width: 100px;
-    height: 100px;
-    object-fit: cover;
-    border-radius: 50%;
-    margin: 0 auto 16px auto;
-    display: block;
-    filter: drop-shadow(0 4px 16px rgba(0, 0, 0, 0.25));
-}
 /* ============================================
    MINIATURA MAPA CRUCERO EN CARD
    ============================================ */

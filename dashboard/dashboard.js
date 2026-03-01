@@ -63,71 +63,38 @@ async function cargarDashboard() {
 
         viajeData = viaje;
 
-        // Cargar destinos
-        const { data: destinos } = await supabaseClient
-            .from('v3_destinos')
-            .select('*')
-            .eq('viaje_id', viaje.id)
-            .order('orden');
+        // Cargar todas las tablas relacionadas EN PARALELO
+        // Nota: NO usar .single() dentro de Promise.all — si falla rompe todo
+        const queries = [
+            supabaseClient.from('v3_destinos').select('*').eq('viaje_id', viaje.id).order('orden'),
+            supabaseClient.from('v3_participantes').select('*').eq('viaje_id', viaje.id),
+            supabaseClient.from('v3_transportes').select('*').eq('viaje_id', viaje.id),
+            supabaseClient.from('v3_gastos').select('*').eq('viaje_id', viaje.id).order('fecha', { ascending: false }),
+            supabaseClient.from('v3_itinerario').select('*').eq('viaje_id', viaje.id).order('fecha', { ascending: true }).order('hora_inicio', { ascending: true }),
+            supabaseClient.from('v3_documentos').select('*').eq('viaje_id', viaje.id),
+            supabaseClient.from('v3_cruceros').select('*').eq('viaje_id', viaje.id).order('created_at', { ascending: false }).limit(1),
+        ];
 
-        viajeData.destinos = destinos || [];
+        const resultados = await Promise.all(queries);
 
-        // Cargar participantes
-        const { data: participantes } = await supabaseClient
-            .from('v3_participantes')
-            .select('*')
-            .eq('viaje_id', viaje.id);
+        viajeData.destinos      = resultados[0].data || [];
+        viajeData.participantes = resultados[1].data || [];
+        viajeData.transportes   = resultados[2].data || [];
+        viajeData.gastos        = resultados[3].data || [];
+        viajeData.itinerario    = resultados[4].data || [];
+        viajeData.documentos    = resultados[5].data || [];
+        // Tomar el primer crucero del array (no .single() para evitar errores)
+        viajeData.crucero       = (resultados[6].data && resultados[6].data.length > 0)
+                                    ? resultados[6].data[0]
+                                    : null;
 
-        viajeData.participantes = participantes || [];
-
-        // Cargar transportes
-        const { data: transportes } = await supabaseClient
-            .from('v3_transportes')
-            .select('*')
-            .eq('viaje_id', viaje.id);
-
-        viajeData.transportes = transportes || [];
-
-        // Cargar gastos
-        const { data: gastos } = await supabaseClient
-            .from('v3_gastos')
-            .select('*')
-            .eq('viaje_id', viaje.id)
-            .order('fecha', { ascending: false });
-
-        viajeData.gastos = gastos || [];
-
-        // Cargar itinerario
-        const { data: itinerario } = await supabaseClient
-            .from('v3_itinerario')
-            .select('*')
-            .eq('viaje_id', viaje.id)
-            .order('fecha', { ascending: true })
-            .order('hora_inicio', { ascending: true });
-
-        viajeData.itinerario = itinerario || [];
-
-        // Cargar documentos
-        const { data: documentos } = await supabaseClient
-            .from('v3_documentos')
-            .select('*')
-            .eq('viaje_id', viaje.id);
-
-        viajeData.documentos = documentos || [];
-
-        // Si tiene crucero, cargar datos del crucero
-        if (viaje.tiene_crucero) {
-            const { data: crucero } = await supabaseClient
-                .from('v3_cruceros')
-                .select('*')
-                .eq('viaje_id', viaje.id)
-                .single();
-
-            viajeData.crucero = crucero || null;
-        }
-
-        // Guardar en cache
-        await guardarViajeLocal(viajeData);
+        // Guardar en cache localStorage
+        try {
+            const cacheActual = JSON.parse(localStorage.getItem('viajes_cache_v3') || '[]');
+            const idx = cacheActual.findIndex(v => v.link_unico === viajeData.link_unico);
+            if (idx >= 0) cacheActual[idx] = viajeData; else cacheActual.push(viajeData);
+            localStorage.setItem('viajes_cache_v3', JSON.stringify(cacheActual));
+        } catch(e) { console.warn('Cache write error:', e); }
 
         // Renderizar dashboard
         renderizarHero();
@@ -147,24 +114,28 @@ async function cargarDashboard() {
         console.error('Error cargando dashboard:', error);
         loadingOverlay.classList.remove('active');
 
-        // Intentar cargar desde cache
-        const viajeCache = await obtenerViajeLocal(linkViaje);
-        if (viajeCache) {
-            viajeData = viajeCache;
-            renderizarHero();
-            renderizarStats();
-            renderizarTransportes();
-            renderizarAccionesRapidas();
-            renderizarChecklist();
-            renderizarProximasActividades();
-            renderizarUltimosGastos();
-            iniciarCuentaRegresiva();
-            mostrarNotificacion('Cargando desde cache local', 'info');
-        } else {
+        // Intentar cargar desde cache localStorage
+        try {
+            const cacheActual = JSON.parse(localStorage.getItem('viajes_cache_v3') || '[]');
+            const viajeCache = cacheActual.find(v => v.link_unico === linkViaje);
+            if (viajeCache) {
+                viajeData = viajeCache;
+                renderizarHero();
+                renderizarAccionesRapidas();
+                renderizarStats();
+                renderizarTransportes();
+                renderizarChecklist();
+                renderizarProximasActividades();
+                renderizarUltimosGastos();
+                iniciarCuentaRegresiva();
+                mostrarNotificacion('Cargando desde cache local', 'info');
+            } else {
+                mostrarNotificacion('Error cargando el viaje', 'error');
+                setTimeout(() => { window.location.href = '../index.html'; }, 2000);
+            }
+        } catch(e) {
             mostrarNotificacion('Error cargando el viaje', 'error');
-            setTimeout(() => {
-                window.location.href = '../index.html';
-            }, 2000);
+            setTimeout(() => { window.location.href = '../index.html'; }, 2000);
         }
     }
 }

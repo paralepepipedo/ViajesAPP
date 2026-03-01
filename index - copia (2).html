@@ -150,35 +150,6 @@
     <script src="config.js"></script>
     <script src="components/header/header.js"></script>
     <script src="index.js"></script>
-
-    <!-- Registro del Service Worker -->
-    <script>
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            // Detectar base path automáticamente (XAMPP vs Vercel)
-            const swPath = window.location.pathname.includes('/ViajesAPP/')
-                ? '/ViajesAPP/sw.js'
-                : '/sw.js';
-            const swScope = window.location.pathname.includes('/ViajesAPP/')
-                ? '/ViajesAPP/'
-                : '/';
-
-            navigator.serviceWorker.register(swPath, { scope: swScope })
-                .then(reg => {
-                    console.log('[App] Service Worker registrado, scope:', reg.scope);
-
-                    // Escuchar mensajes del SW (ej: sync listo)
-                    navigator.serviceWorker.addEventListener('message', e => {
-                        if (e.data?.type === 'SYNC_READY') {
-                            // Disparar sync de pendientes si index.js ya está listo
-                            if (typeof cargarViajes === 'function') cargarViajes();
-                        }
-                    });
-                })
-                .catch(err => console.warn('[App] SW no registrado:', err));
-        });
-    }
-    </script>
 </body>
 
 </html>

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mis Viajes - Gestor de Viajes</title>
+    <link rel="stylesheet" href="components/header/header.css">
+    <link rel="stylesheet" href="index.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- ═══════════════════════════════════════ -->
+    <!--  FAVICON & PWA — pegar en TODOS los HTML -->
+    <!-- ═══════════════════════════════════════ -->
+
+    <!-- Favicon clásico -->
+    <link rel="icon" href="/favicon.ico" sizes="48x48">
+
+    <!-- Favicon SVG (navegadores modernos) -->
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+
+    <!-- Favicon PNG 96px -->
+    <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png">
+
+    <!-- Apple Touch Icon (iPhone/iPad al guardar en pantalla inicio) -->
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+
+    <!-- Web App Manifest (PWA) -->
+    <link rel="manifest" href="/site.webmanifest">
+
+    <!-- Color de la barra del navegador en Android -->
+    <meta name="theme-color" content="#6366f1">
+
+    <!-- Para que se vea bien al compartir en redes sociales (Open Graph) -->
+    <meta property="og:title" content="Gestor de Viajes">
+    <meta property="og:description" content="Tu planificador de viajes personal">
+    <meta property="og:image" content="/web-app-manifest-512x512.png">
+    <meta property="og:type" content="website">
+</head>
+
+<body>
+    <!-- Header Global -->
+    <div id="globalHeader"></div>
+
+    <!-- Hero Section -->
+    <section class="hero">
+    <!-- Hero Section -->
+        <div class="hero-content">
+            <img
+                src="web-app-manifest-192x192.png"
+                alt="Logo"
+                class="hero-logo"
+                onerror="this.style.display='none'"
+            >
+            <h1 class="hero-title">Organiza tus Viajes</h1>
+            <p class="hero-subtitle">Gestiona destinos, gastos, itinerarios y más en un solo lugar</p>
+            <a href="wizard/wizard.html" class="btn btn-hero">✨ Crear Nuevo Viaje</a>
+        </div>
+    </section>
+
+    <!-- Contenedor Principal -->
+    <div class="container">
+        <!-- Indicador de estado offline -->
+        <div class="offline-banner" id="offlineBanner">
+            <span class="offline-icon">📡</span>
+            <p>Modo offline - Los cambios se sincronizarán cuando tengas conexión</p>
+        </div>
+
+        <!-- Filtros y búsqueda -->
+        <div class="controles">
+            <div class="search-box">
+                <input type="text" id="buscarViaje" placeholder="🔍 Buscar viaje...">
+            </div>
+            <div class="filtros">
+                <select id="filtroEstado">
+                    <option value="todos">Todos los viajes</option>
+                    <option value="proximos">Próximos</option>
+                    <option value="en_curso">En curso</option>
+                    <option value="finalizados">Finalizados</option>
+                </select>
+                <select id="ordenar">
+                    <option value="fecha_desc">Más recientes</option>
+                    <option value="fecha_asc">Más antiguos</option>
+                    <option value="nombre_asc">Nombre A-Z</option>
+                    <option value="nombre_desc">Nombre Z-A</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Grid de Viajes -->
+        <div id="viajesGrid" class="viajes-grid">
+            <!-- Se llenará dinámicamente -->
+        </div>
+
+        <!-- Estado vacío -->
+        <div id="estadoVacio" class="estado-vacio" style="display: none;">
+            <div class="empty-icon">✈️</div>
+            <h2>No hay viajes creados</h2>
+            <p>Comienza creando tu primer viaje y organiza toda tu aventura</p>
+            <a href="wizard/wizard.html" class="btn btn-primary">Crear Primer Viaje</a>
+        </div>
+
+        <!-- Loading -->
+        <div id="loadingViajes" class="loading-container">
+            <div class="spinner"></div>
+            <p>Cargando viajes...</p>
+        </div>
+    </div>
+
+    <!-- Modal: Confirmar Eliminación -->
+    <div class="modal" id="modalEliminar">
+        <div class="modal-content modal-small">
+            <div class="modal-header">
+                <h3>⚠️ Confirmar Eliminación</h3>
+                <button class="modal-close" id="closeModalEliminar">✕</button>
+            </div>
+            <div class="modal-body">
+                <p>¿Estás seguro de eliminar este viaje?</p>
+                <p class="text-danger"><strong>Esta acción no se puede deshacer.</strong></p>
+                <p class="text-gray">Se eliminarán todos los gastos, itinerarios y documentos asociados.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="btnCancelarEliminar">Cancelar</button>
+                <button type="button" class="btn btn-danger" id="btnConfirmarEliminar">Eliminar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="components/header/header.js"></script>
+    <script src="index.js"></script>
+</body>
+
+</html><!-- TEMPORAL: ver hero section -->

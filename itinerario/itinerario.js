@@ -15,17 +15,21 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (!linkViaje) {
         mostrarNotificacion('No se especificó un viaje', 'error');
-        setTimeout(() => {
-            window.location.href = '../index.html';
-        }, 2000);
+        setTimeout(() => { window.location.href = '../index.html'; }, 2000);
         return;
     }
 
     inicializarEventos();
     verificarEstadoConexion();
+
+    // Viaje primero (necesitamos viajeData.id)
     await cargarDatosViaje();
-    await cargarDestinos();
-    await cargarActividades();
+
+    // Destinos y actividades EN PARALELO
+    await Promise.all([
+        cargarDestinos(),
+        cargarActividades()
+    ]);
 });
 
 // ============================================

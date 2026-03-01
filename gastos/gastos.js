@@ -30,18 +30,22 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (!linkViaje) {
         mostrarNotificacion('No se especificó un viaje', 'error');
-        setTimeout(() => {
-            window.location.href = '../index.html';
-        }, 2000);
+        setTimeout(() => { window.location.href = '../index.html'; }, 2000);
         return;
     }
 
     inicializarEventos();
     verificarEstadoConexion();
+
+    // cargarDatosViaje primero (necesitamos viajeData.id para las siguientes)
     await cargarDatosViaje();
-    await cargarPresupuestos();
-    await cargarPagosDeudas();
-    await cargarGastos();
+
+    // Luego gastos + presupuestos + pagosDeudas EN PARALELO
+    await Promise.all([
+        cargarGastos(),
+        cargarPresupuestos(),
+        cargarPagosDeudas()
+    ]);
 });
 
 // ============================================
@@ -237,40 +241,26 @@ function verificarEstadoConexion() {
 // ============================================
 async function cargarDatosViaje() {
     try {
-        // Cargar viaje
+        // Cargar viaje primero (necesitamos el ID)
         const { data: viaje, error: errorViaje } = await supabaseClient
-            .from('v3_viajes')
-            .select('*')
-            .eq('link_unico', linkViaje)
-            .single();
+            .from('v3_viajes').select('*').eq('link_unico', linkViaje).single();
 
         if (errorViaje) throw errorViaje;
-
         viajeData = viaje;
         document.getElementById('viajeNombre').textContent = viaje.nombre;
 
-        // Cargar destinos
-        const { data: destinosData, error: errorDestinos } = await supabaseClient
-            .from('v3_destinos')
-            .select('*')
-            .eq('viaje_id', viaje.id)
-            .order('orden');
+        // Destinos y participantes EN PARALELO
+        const [resDestinos, resParticipantes] = await Promise.all([
+            supabaseClient.from('v3_destinos').select('*').eq('viaje_id', viaje.id).order('orden'),
+            supabaseClient.from('v3_participantes').select('*').eq('viaje_id', viaje.id)
+        ]);
 
-        if (errorDestinos) throw errorDestinos;
+        if (resDestinos.error) throw resDestinos.error;
+        if (resParticipantes.error) throw resParticipantes.error;
 
-        destinos = destinosData || [];
+        destinos     = resDestinos.data     || [];
+        participantes = resParticipantes.data || [];
 
-        // Cargar participantes
-        const { data: participantesData, error: errorParticipantes } = await supabaseClient
-            .from('v3_participantes')
-            .select('*')
-            .eq('viaje_id', viaje.id);
-
-        if (errorParticipantes) throw errorParticipantes;
-
-        participantes = participantesData || [];
-
-        // Llenar selectores
         llenarSelectoresParticipantes();
         llenarSelectoresMonedas();
 

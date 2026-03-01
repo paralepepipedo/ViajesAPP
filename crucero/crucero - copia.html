@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crucero - Gestor de Viajes</title>
+    <link rel="stylesheet" href="../components/header/header.css">
+    <link rel="stylesheet" href="crucero.css">
+</head>
+<body>
+    <div id="globalHeader"></div>
+    <div id="offlineBanner" class="offline-banner">
+        ⚠️ Modo offline - Los cambios se sincronizarán cuando tengas conexión
+    </div>
+
+    <main class="main-content">
+
+        <!-- Estado vacío -->
+        <div id="emptyCrucero" class="empty-crucero" style="display:none;">
+            <div class="empty-icon-big">🚢</div>
+            <h2>No hay crucero configurado</h2>
+            <p>Agrega los datos de tu crucero para comenzar</p>
+            <button class="btn-primary" id="btnConfigCrucero">+ Configurar Crucero</button>
+        </div>
+
+        <!-- Contenido -->
+        <div id="cruceroContent" style="display:none;">
+
+            <!-- Hero -->
+            <div class="ship-hero">
+                <div class="ship-hero-icon">🚢</div>
+                <div class="ship-hero-info">
+                    <h1 id="heroBarco" class="ship-name"></h1>
+                    <p id="heroNaviera" class="ship-naviera"></p>
+                    <div class="ship-tags">
+                        <span id="heroCabina" class="ship-tag"></span>
+                        <span id="heroFechas" class="ship-tag"></span>
+                        <span id="heroNoches" class="ship-tag"></span>
+                    </div>
+                </div>
+                <button class="btn-icon-lg" id="btnEditarCrucero" title="Editar crucero">✏️</button>
+            </div>
+
+            <!-- Tabs -->
+            <div class="crucero-tabs">
+                <button class="ctab active" data-tab="puertos">⚓ Puertos</button>
+                <button class="ctab" data-tab="actividades">🎭 A Bordo</button>
+                <button class="ctab" data-tab="tours">🗺️ Tours</button>
+                <button class="ctab" data-tab="info">ℹ️ Info</button>
+            </div>
+
+            <!-- TAB PUERTOS -->
+            <div id="tab-puertos" class="ctab-content active">
+                <div class="tab-toolbar">
+                    <h3 class="tab-title">Itinerario de Puertos</h3>
+                    <button class="btn-primary btn-sm" id="btnAgregarPuerto">+ Puerto</button>
+                </div>
+                <div id="puertosTimeline" class="puertos-timeline"></div>
+            </div>
+
+            <!-- TAB ACTIVIDADES -->
+            <div id="tab-actividades" class="ctab-content">
+                <div class="tab-toolbar">
+                    <h3 class="tab-title">Actividades a Bordo</h3>
+                    <button class="btn-primary btn-sm" id="btnAgregarActividad">+ Actividad</button>
+                </div>
+                <div class="actividades-filters">
+                    <select id="filtroFechaAct" class="filter-select">
+                        <option value="">Todas las fechas</option>
+                    </select>
+                </div>
+                <div id="actividadesGrid" class="actividades-grid"></div>
+            </div>
+
+            <!-- TAB TOURS -->
+            <div id="tab-tours" class="ctab-content">
+                <div class="tab-toolbar">
+                    <h3 class="tab-title">Tours en Destinos</h3>
+                    <p class="tab-subtitle">Tours del itinerario agrupados por puerto</p>
+                </div>
+                <div id="toursGrid" class="tours-grid"></div>
+            </div>
+
+            <!-- TAB INFO -->
+            <div id="tab-info" class="ctab-content">
+                <div class="info-grid">
+                    <div class="info-card">
+                        <h4>🚢 Datos del Barco</h4>
+                        <div id="infoBarco" class="info-fields"></div>
+                    </div>
+                    <div class="info-card full-width">
+                        <h4>📝 Notas Generales</h4>
+                        <div id="infoNotas" style="white-space:pre-line;font-size:14px;color:#475569;line-height:1.6;"></div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- ======================================================
+         MODAL: DATOS DEL CRUCERO
+    ====================================================== -->
+    <div class="modal-overlay" id="modalCrucero">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3 id="modalCruceroTitulo">Configurar Crucero</h3>
+                <button class="modal-close" id="btnCerrarModalCrucero">✕</button>
+            </div>
+            <form id="formCrucero" class="doc-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Nombre del Barco *</label>
+                        <input type="text" id="crucBarco" placeholder="MSC Preziosa" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Naviera *</label>
+                        <input type="text" id="crucNaviera" placeholder="MSC Cruceros" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Número de Cabina</label>
+                        <input type="text" id="crucCabina" placeholder="8181">
+                    </div>
+                    <div class="form-group">
+                        <label>Tipo de Cabina</label>
+                        <select id="crucTipoCabina">
+                            <option value="">Selecciona...</option>
+                            <option value="interior">Interior</option>
+                            <option value="oceanview">Vista al Mar</option>
+                            <option value="balcony">Balcón</option>
+                            <option value="suite">Suite</option>
+                            <option value="suite_royal">Suite Royal</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Fecha Embarque *</label>
+                        <input type="datetime-local" id="crucFechaEmbarque" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Fecha Desembarque *</label>
+                        <input type="datetime-local" id="crucFechaDesembarque" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Puerto de Salida</label>
+                        <input type="text" id="crucPuertoSalida" placeholder="Santos, Brasil">
+                    </div>
+                    <div class="form-group">
+                        <label>Puerto de Llegada Final</label>
+                        <input type="text" id="crucPuertoLlegada" placeholder="Santos, Brasil">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>N° Reserva</label>
+                        <input type="text" id="crucNumReserva" placeholder="63120180">
+                    </div>
+                    <div class="form-group">
+                        <label>Deck / Cubierta</label>
+                        <input type="text" id="crucDeck" placeholder="Decks 8-11">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Teléfono / Contacto Naviera</label>
+                    <input type="tel" id="crucTelNaviera" placeholder="+56 2298 84855">
+                </div>
+                <div class="form-group">
+                    <label>Notas Generales</label>
+                    <textarea id="crucNotas" rows="3" placeholder="Información adicional..."></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary" id="btnCancelarCrucero">Cancelar</button>
+                    <button type="submit" class="btn-primary">💾 Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ======================================================
+         MODAL: AGREGAR / EDITAR PUERTO
+    ====================================================== -->
+    <div class="modal-overlay" id="modalPuerto">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3 id="modalPuertoTitulo">Agregar Puerto</h3>
+                <button class="modal-close" id="btnCerrarModalPuerto">✕</button>
+            </div>
+            <form id="formPuerto" class="doc-form">
+                <input type="hidden" id="puertoId">
+
+                <div class="form-group">
+                    <label>Puerto / Ciudad *</label>
+                    <input type="text" id="puertoNombre" placeholder="Santos, Brasil" required>
+                </div>
+
+                <!-- Tipo de parada -->
+                <div class="form-group">
+                    <label>Tipo de parada *</label>
+                    <div class="radio-group">
+                        <label class="radio-item">
+                            <input type="radio" name="tipoPuerto" value="salida">
+                            <span>🚢 Puerto de Salida <small>(Embarque)</small></span>
+                        </label>
+                        <label class="radio-item">
+                            <input type="radio" name="tipoPuerto" value="escala" checked>
+                            <span>⚓ Escala</span>
+                        </label>
+                        <label class="radio-item">
+                            <input type="radio" name="tipoPuerto" value="llegada">
+                            <span>🏁 Puerto de Llegada <small>(Desembarque)</small></span>
+                        </label>
+                    </div>
+                </div>
+
+                <div id="grupoPuertoLlegada" class="form-group">
+                    <label>Fecha y Hora Llegada</label>
+                    <input type="datetime-local" id="puertoLlegada">
+                </div>
+
+                <div id="grupoPuertoSalida" class="form-group">
+                    <label>Fecha y Hora Salida</label>
+                    <input type="datetime-local" id="puertoSalida">
+                </div>
+
+                <div class="form-group">
+                    <label>Vincular con Destino del Viaje</label>
+                    <select id="puertoDestinoId">
+                        <option value="">Sin vincular</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Notas del Puerto</label>
+                    <textarea id="puertoNotas" rows="2" placeholder="Muelle, terminal, indicaciones..."></textarea>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary" id="btnCancelarPuerto">Cancelar</button>
+                    <button type="submit" class="btn-primary">💾 Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ======================================================
+         MODAL: ACTIVIDAD A BORDO
+    ====================================================== -->
+    <div class="modal-overlay" id="modalActividad">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3 id="modalActividadTitulo">Agregar Actividad</h3>
+                <button class="modal-close" id="btnCerrarModalActividad">✕</button>
+            </div>
+            <form id="formActividad" class="doc-form">
+                <input type="hidden" id="actividadId">
+                <div class="form-group">
+                    <label>Título *</label>
+                    <input type="text" id="actTitulo" placeholder="Cena de gala, Show de magia..." required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Fecha</label>
+                        <input type="date" id="actFecha">
+                    </div>
+                    <div class="form-group">
+                        <label>Ubicación a Bordo</label>
+                        <input type="text" id="actUbicacion" placeholder="Teatro Principal, Deck 12">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Hora Inicio</label>
+                        <input type="time" id="actHoraInicio">
+                    </div>
+                    <div class="form-group">
+                        <label>Hora Fin</label>
+                        <input type="time" id="actHoraFin">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Costo Estimado</label>
+                        <input type="number" id="actCosto" step="0.01" min="0" placeholder="0.00">
+                    </div>
+                    <div class="form-group">
+                        <label>Moneda</label>
+                        <select id="actMoneda">
+                            <option value="USD">USD</option>
+                            <option value="CLP">CLP</option>
+                            <option value="BRL">BRL</option>
+                            <option value="ARS">ARS</option>
+                            <option value="EUR">EUR</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+                        <input type="checkbox" id="actReserva"> Requiere reserva previa
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label>Descripción</label>
+                    <textarea id="actDescripcion" rows="2" placeholder="Detalles adicionales..."></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary" id="btnCancelarActividad">Cancelar</button>
+                    <button type="submit" class="btn-primary">💾 Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ======================================================
+         POPUP: DETALLE DE TOUR
+    ====================================================== -->
+    <div class="modal-overlay" id="modalPopupTour">
+        <div class="modal-container modal-popup-tour">
+            <div class="modal-header">
+                <h3 id="popupTourTitulo">Tour</h3>
+                <button class="modal-close" id="btnCerrarPopupTour">✕</button>
+            </div>
+            <div class="popup-tour-body">
+                <div class="ptb-row">
+                    <span class="ptb-label">📅 Fecha</span>
+                    <span id="popupTourFecha" class="ptb-val"></span>
+                </div>
+                <div class="ptb-row">
+                    <span class="ptb-label">🕐 Horario</span>
+                    <span id="popupTourHora" class="ptb-val"></span>
+                </div>
+                <div class="ptb-row">
+                    <span class="ptb-label">💰 Costo</span>
+                    <span id="popupTourCosto" class="ptb-val"></span>
+                </div>
+                <div class="ptb-desc" id="popupTourDescripcion"></div>
+                <button class="btn-secondary btn-sm" id="btnIrTours" style="margin-top:16px;width:100%;">
+                    🗺️ Ver todos los tours →
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../config.js"></script>
+    <script src="../components/header/header.js"></script>
+    <script src="crucero.js"></script>
+</body>
+</html>
