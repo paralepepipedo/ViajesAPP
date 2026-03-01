@@ -533,24 +533,36 @@ async function guardarActividad(e) {
             vinculado_crucero: false
         };
 
+        // ── MODO OFFLINE: guardar en cola local ──────────────────────────
+        if (!navigator.onLine) {
+            guardarActividadOffline(actividadEditandoId ? 'editar' : 'crear', actividadData, actividadEditandoId);
+            // Agregar al array local para que se vea en pantalla sin recargar
+            if (!actividadEditandoId) {
+                actividadesData.push({ ...actividadData, id: 'offline_' + Date.now(), _offline: true });
+            } else {
+                const idx = actividadesData.findIndex(a => a.id === actividadEditandoId);
+                if (idx >= 0) actividadesData[idx] = { ...actividadData, id: actividadEditandoId, _offline: true };
+            }
+            loadingOverlay.classList.remove('active');
+            cerrarModalActividad();
+            renderizarActividades();
+            mostrarNotificacion('📡 Sin conexión — actividad guardada localmente, se sincronizará al conectar', 'warning');
+            return;
+        }
+
+        // ── MODO ONLINE ───────────────────────────────────────────────────
         if (actividadEditandoId) {
-            // Actualizar actividad existente
             const { error } = await supabaseClient
                 .from('v3_itinerario')
                 .update(actividadData)
                 .eq('id', actividadEditandoId);
-
             if (error) throw error;
-
             mostrarNotificacion('Actividad actualizada correctamente', 'success');
         } else {
-            // Crear nueva actividad
             const { error } = await supabaseClient
                 .from('v3_itinerario')
                 .insert(actividadData);
-
             if (error) throw error;
-
             mostrarNotificacion('Actividad creada correctamente', 'success');
         }
 
@@ -689,3 +701,63 @@ function mostrarNotificacion(mensaje, tipo = 'info') {
     }).showToast();
 }
 
+
+// ============================================
+// COLA OFFLINE — actividades
+// ============================================
+const ACTIVIDADES_OFFLINE_KEY = 'actividades_offline_queue';
+
+function guardarActividadOffline(accion, datos, idExistente = null) {
+    try {
+        const cola = JSON.parse(localStorage.getItem(ACTIVIDADES_OFFLINE_KEY) || '[]');
+        cola.push({
+            id:          'q_' + Date.now(),
+            accion,      // 'crear' | 'editar'
+            datos,
+            idExistente,
+            timestamp:   Date.now()
+        });
+        localStorage.setItem(ACTIVIDADES_OFFLINE_KEY, JSON.stringify(cola));
+        console.log(`[Offline] actividad ${accion} encolada. Total: ${cola.length}`);
+    } catch(e) { console.warn('Error guardando actividad offline:', e); }
+}
+
+async function sincronizarActividadesOffline() {
+    if (!navigator.onLine) return;
+    const cola = JSON.parse(localStorage.getItem(ACTIVIDADES_OFFLINE_KEY) || '[]');
+    if (cola.length === 0) return;
+
+    console.log(`[Offline] Sincronizando ${cola.length} actividad(es)...`);
+    const errores = [];
+
+    for (const item of cola) {
+        try {
+            if (item.accion === 'crear') {
+                const { error } = await supabaseClient.from('v3_itinerario').insert(item.datos);
+                if (error) throw error;
+            } else if (item.accion === 'editar' && item.idExistente) {
+                const { error } = await supabaseClient.from('v3_itinerario').update(item.datos).eq('id', item.idExistente);
+                if (error) throw error;
+            }
+        } catch(e) {
+            console.warn('[Offline] Error sincronizando actividad:', e);
+            errores.push(item);
+        }
+    }
+
+    if (errores.length === 0) {
+        localStorage.removeItem(ACTIVIDADES_OFFLINE_KEY);
+        mostrarNotificacion('✅ Actividades sincronizadas correctamente', 'success');
+    } else {
+        localStorage.setItem(ACTIVIDADES_OFFLINE_KEY, JSON.stringify(errores));
+        mostrarNotificacion(`⚠️ ${errores.length} actividad(es) no pudieron sincronizarse`, 'warning');
+    }
+
+    await cargarActividades();
+}
+
+// Sincronizar al reconectar
+window.addEventListener('online', () => {
+    mostrarNotificacion('🔄 Conexión restaurada — sincronizando actividades...', 'info');
+    sincronizarActividadesOffline();
+});
