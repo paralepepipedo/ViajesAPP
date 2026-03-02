@@ -147,6 +147,18 @@
         </div>
     </div>
 
+    <!-- Banner: nueva versión disponible -->
+    <div id="updateBanner" style="display:none; background:#10b981; color:white; padding:.6rem 1rem; font-size:.83rem; align-items:center; gap:.75rem; flex-wrap:wrap;">
+        <span>🔄 Nueva versión disponible</span>
+        <button onclick="actualizarApp()"
+            style="background:white; color:#10b981; border:none; padding:.35rem .9rem; border-radius:20px; font-weight:700; cursor:pointer; font-size:.82rem;">
+            Actualizar ahora
+        </button>
+        <span style="font-size:.76rem; opacity:.85;">Los cambios se aplican al recargar</span>
+        <button onclick="document.getElementById('updateBanner').style.display='none'"
+            style="background:transparent; border:none; color:white; font-size:1.1rem; cursor:pointer; margin-left:auto;">✕</button>
+    </div>
+
     <!-- Banner offline / guardar para offline -->
     <div id="offlineBanner" class="offline-banner">
         <p id="offlineBannerMsg">📡 Sin conexión — mostrando datos guardados</p>
@@ -196,6 +208,14 @@
                     if (typeof cargarViajes === 'function') cargarViajes();
                 }
 
+                // Nueva versión instalada → mostrar banner verde
+                if (type === 'SW_UPDATED') {
+                    console.log('[App] Nueva versión SW:', e.data.version);
+                    localStorage.removeItem('offline_cache_version'); // forzar re-cache en próxima visita
+                    const banner = document.getElementById('updateBanner');
+                    if (banner) banner.style.display = 'flex';
+                }
+
                 if (type === 'CACHE_PROGRESS') {
                     const pct = Math.round((ok / total) * 100);
                     const prog = document.getElementById('offlineProgress');
@@ -231,6 +251,15 @@
                 }
             });
         });
+    }
+
+    function actualizarApp() {
+        // Pedir al nuevo SW que tome control inmediatamente
+        if (navigator.serviceWorker.controller) {
+            navigator.serviceWorker.controller.postMessage({ type: 'SKIP_WAITING' });
+        }
+        // Recargar para aplicar cambios
+        window.location.reload();
     }
 
     function verificarEstadoCache() {

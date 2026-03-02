@@ -50,17 +50,27 @@ async function precachearArchivos() {
 }
 
 // ══════════════════════════════════════════════
-// ACTIVATE
+// ACTIVATE — limpiar caches viejos y avisar al usuario
 // ══════════════════════════════════════════════
 self.addEventListener('activate', event => {
     console.log('[SW] Activado', VERSION);
     event.waitUntil(
-        caches.keys()
-            .then(keys => Promise.all(
-                keys.filter(k => k !== CACHE_APP && k !== CACHE_DATA)
-                    .map(k => caches.delete(k))
-            ))
-            .then(() => self.clients.claim())
+        caches.keys().then(async keys => {
+            // Detectar si había versión anterior
+            const hayVersionVieja = keys.some(k =>
+                (k.startsWith('viajes-app-') || k.startsWith('viajes-static-')) && k !== CACHE_APP
+            );
+            // Borrar caches viejos
+            await Promise.all(
+                keys.filter(k => k !== CACHE_APP && k !== CACHE_DATA).map(k => caches.delete(k))
+            );
+            await self.clients.claim();
+            // Avisar a la app si hay update
+            if (hayVersionVieja) {
+                const clients = await self.clients.matchAll({ type: 'window' });
+                clients.forEach(c => c.postMessage({ type: 'SW_UPDATED', version: VERSION }));
+            }
+        })
     );
 });
 
