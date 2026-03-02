@@ -147,36 +147,112 @@
         </div>
     </div>
 
+    <!-- Banner offline / guardar para offline -->
+    <div id="offlineBanner" class="offline-banner">
+        <p id="offlineBannerMsg">📡 Sin conexión — mostrando datos guardados</p>
+    </div>
+
+    <!-- Banner: guardar para offline -->
+    <div id="offlineSaveBar" style="display:none; background:#667eea; color:white; padding:.6rem 1rem; font-size:.83rem; display:flex; align-items:center; gap:.75rem; flex-wrap:wrap;">
+        <span>📥 Guardá la app para usarla sin internet</span>
+        <button onclick="guardarAppOffline()" id="btnGuardarOffline"
+            style="background:white; color:#667eea; border:none; padding:.35rem .9rem; border-radius:20px; font-weight:700; cursor:pointer; font-size:.82rem;">
+            Guardar para offline
+        </button>
+        <span id="offlineProgress" style="font-size:.78rem; opacity:.85;"></span>
+        <button onclick="document.getElementById('offlineSaveBar').style.display='none'"
+            style="background:transparent; border:none; color:white; font-size:1.1rem; cursor:pointer; margin-left:auto;">✕</button>
+    </div>
+
     <script src="config.js"></script>
     <script src="components/header/header.js"></script>
     <script src="index.js"></script>
 
-    <!-- Registro del Service Worker -->
+    <!-- Service Worker + lógica offline -->
     <script>
+    let swRegistration = null;
+
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-            // Detectar base path automáticamente (XAMPP vs Vercel)
-            const swPath = window.location.pathname.includes('/ViajesAPP/')
-                ? '/ViajesAPP/sw.js'
-                : '/sw.js';
-            const swScope = window.location.pathname.includes('/ViajesAPP/')
-                ? '/ViajesAPP/'
-                : '/';
+            const enXAMPP = window.location.pathname.includes('/ViajesAPP/');
+            const swPath  = enXAMPP ? '/ViajesAPP/sw.js' : '/sw.js';
+            const swScope = enXAMPP ? '/ViajesAPP/' : '/';
 
             navigator.serviceWorker.register(swPath, { scope: swScope })
                 .then(reg => {
-                    console.log('[App] Service Worker registrado, scope:', reg.scope);
+                    swRegistration = reg;
+                    console.log('[App] SW registrado:', reg.scope);
 
-                    // Escuchar mensajes del SW (ej: sync listo)
-                    navigator.serviceWorker.addEventListener('message', e => {
-                        if (e.data?.type === 'SYNC_READY') {
-                            // Disparar sync de pendientes si index.js ya está listo
-                            if (typeof cargarViajes === 'function') cargarViajes();
-                        }
-                    });
+                    // Mostrar barra "guardar offline" si hay SW pero no hay cache completo
+                    verificarEstadoCache();
                 })
                 .catch(err => console.warn('[App] SW no registrado:', err));
+
+            // Escuchar mensajes del SW
+            navigator.serviceWorker.addEventListener('message', e => {
+                const { type, ok, total, url } = e.data || {};
+
+                if (type === 'SYNC_READY') {
+                    if (typeof cargarViajes === 'function') cargarViajes();
+                }
+
+                if (type === 'CACHE_PROGRESS') {
+                    const pct = Math.round((ok / total) * 100);
+                    const prog = document.getElementById('offlineProgress');
+                    if (prog) prog.textContent = `Guardando... ${pct}% (${ok}/${total})`;
+                }
+
+                if (type === 'CACHE_DONE') {
+                    const btn  = document.getElementById('btnGuardarOffline');
+                    const prog = document.getElementById('offlineProgress');
+                    if (btn)  btn.textContent = '✅ Listo';
+                    if (prog) prog.textContent = `${ok} archivos guardados`;
+                    setTimeout(() => {
+                        document.getElementById('offlineSaveBar').style.display = 'none';
+                    }, 3000);
+                    localStorage.setItem('offline_cache_version', 'v2.0.0');
+                }
+
+                if (type === 'CACHE_STATUS') {
+                    const barGuardar = document.getElementById('offlineSaveBar');
+                    const cacheOk = e.data.cached >= Math.floor(e.data.total * 0.8);
+                    const versionOk = localStorage.getItem('offline_cache_version') === 'v2.0.0';
+                    if (barGuardar && (!cacheOk || !versionOk)) {
+                        barGuardar.style.display = 'flex';
+                    }
+                }
+
+                if (type === 'SW_INSTALLED') {
+                    console.log(`[App] SW instaló ${ok}/${total} archivos`);
+                    if (ok >= Math.floor(total * 0.8)) {
+                        localStorage.setItem('offline_cache_version', 'v2.0.0');
+                        document.getElementById('offlineSaveBar').style.display = 'none';
+                    }
+                }
+            });
         });
+    }
+
+    function verificarEstadoCache() {
+        const versionOk = localStorage.getItem('offline_cache_version') === 'v2.0.0';
+        if (!versionOk && navigator.serviceWorker.controller) {
+            navigator.serviceWorker.controller.postMessage({ type: 'CHECK_CACHE' });
+        } else if (!versionOk) {
+            document.getElementById('offlineSaveBar').style.display = 'flex';
+        }
+    }
+
+    function guardarAppOffline() {
+        if (!navigator.serviceWorker.controller) {
+            mostrarNotificacion('El Service Worker no está listo. Recarga la página e intenta de nuevo.', 'warning');
+            return;
+        }
+        const btn = document.getElementById('btnGuardarOffline');
+        const prog = document.getElementById('offlineProgress');
+        btn.disabled = true;
+        btn.textContent = 'Guardando...';
+        if (prog) prog.textContent = 'Iniciando...';
+        navigator.serviceWorker.controller.postMessage({ type: 'CACHE_APP' });
     }
     </script>
 </body>
