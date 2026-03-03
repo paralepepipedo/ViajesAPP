@@ -643,9 +643,9 @@ function renderizarAccionesRapidas() {
     const actionsContainer = document.getElementById('actionsGrid');
 
     const acciones = [
-        { icono: '💳', label: 'Agregar Gasto', url: `../gastos/gastos.html?link=${linkViaje}` },
+        { icono: '💳', label: 'Gastos', url: `../gastos/gastos.html?link=${linkViaje}` },
         { icono: '📅', label: 'Nueva Actividad', url: `../itinerario/itinerario.html?link=${linkViaje}` },
-        { icono: '📄', label: 'Subir Documento', url: `../documentos/documentos.html?link=${linkViaje}` }
+        { icono: '📄', label: 'Documentos', url: `../documentos/documentos.html?link=${linkViaje}` }
     ];
 
     if (viajeData.tiene_crucero) {
