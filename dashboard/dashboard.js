@@ -492,34 +492,129 @@ function renderizarTransportes() {
         'tren': '🚂'
     };
 
-    timeline.innerHTML = viajeData.transportes.map((t, index) => {
-        const detalles = t.detalles || {};
-        const tieneDocumento = t.archivo_url || index < (viajeData.documentos?.length || 0);
+    // Helpers para leer documentos relacionados
+    const docs = viajeData.documentos || [];
 
+    // Busca todos los documentos de un tipo dado (puede haber varios, ej: ida y vuelta)
+    function buscarDocsPorTipo(...tipos) {
+        return docs.filter(d => tipos.includes(d.tipo));
+    }
+
+    // Formatea un datetime string a fecha legible
+    function formatearDatetime(datetimeStr) {
+        if (!datetimeStr) return null;
+        const dt = new Date(datetimeStr);
+        if (isNaN(dt)) return null;
+        const fecha = dt.toLocaleDateString('es-CL', { day: '2-digit', month: 'short', year: 'numeric' });
+        const hora  = dt.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', hour12: false });
+        return `${fecha} ${hora}`;
+    }
+
+    timeline.innerHTML = viajeData.transportes.map((t) => {
+        const detalles = t.detalles || {};
         let contenidoDetalle = '';
+        let tieneDocumento = false;
 
         if (t.tipo === 'avion') {
+            // Leer todos los pasajes de avión subidos en documentos
+            const pasajes = buscarDocsPorTipo('pasaje_avion', 'tarjeta_embarque');
+            tieneDocumento = pasajes.length > 0;
+
+            if (pasajes.length > 0) {
+                // Mostrar cada pasaje encontrado (puede haber ida y vuelta)
+                contenidoDetalle = pasajes.map(doc => {
+                    const m = doc.metadata || {};
+                    const ruta = (m.origen && m.destino) ? `${m.origen} → ${m.destino}` : '';
+                    const salida = formatearDatetime(m.fecha_salida);
+                    const tieneArchivo = doc.archivo_url && doc.archivo_url !== '';
+                    const docIdEscapado = doc.id.replace(/'/g, "\\'");
+                    return `
+                        <div class="transporte-sub-item">
+                            <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+                                <strong>${doc.nombre}</strong>
+                                ${tieneArchivo ? `
+                                    <button
+                                        onclick="abrirVisorDashboard('${docIdEscapado}')"
+                                        title="Ver documento"
+                                        style="background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border:none;border-radius:8px;padding:4px 10px;font-size:0.8rem;cursor:pointer;white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:4px;">
+                                        🎫 Ver pasaje
+                                    </button>` : ''}
+                            </div>
+                            ${ruta ? `<div>🗺️ <strong>Ruta:</strong> ${ruta}</div>` : ''}
+                            ${m.aerolinea ? `<div>✈️ <strong>Aerolínea:</strong> ${m.aerolinea}</div>` : ''}
+                            ${m.num_vuelo ? `<div>🔢 <strong>N° Vuelo:</strong> ${m.num_vuelo}</div>` : ''}
+                            ${salida ? `<div>🕐 <strong>Salida:</strong> ${salida}</div>` : ''}
+                            ${m.asiento ? `<div>💺 <strong>Asiento:</strong> ${m.asiento}</div>` : ''}
+                            ${m.terminal ? `<div>🖥️ <strong>Terminal:</strong> ${m.terminal}</div>` : ''}
+                            ${m.puerta ? `<div>🚪 <strong>Puerta:</strong> ${m.puerta}</div>` : ''}
+                            ${m.reserva ? `<div>🔖 <strong>Reserva:</strong> ${m.reserva}</div>` : ''}
+                        </div>
+                    `;
+                }).join('<hr style="border:none;border-top:1px solid var(--border-color);margin:0.5rem 0;">');
+            } else {
+                // Sin documentos: mostrar lo que haya en detalles del wizard (puede estar vacío)
+                contenidoDetalle = `
+                    <div><strong>Aerolínea:</strong> ${detalles.aerolinea || 'Por definir'}</div>
+                    <div><strong>N° Vuelo:</strong> ${detalles.numero_vuelo || 'Por definir'}</div>
+                    ${detalles.origen || detalles.destino ? `<div><strong>Ruta:</strong> ${detalles.origen || '?'} → ${detalles.destino || '?'}</div>` : ''}
+                    ${detalles.fecha ? `<div><strong>Fecha:</strong> ${formatearFechaLocal(detalles.fecha)}${detalles.hora ? ` a las ${detalles.hora}` : ''}</div>` : ''}
+                    <div style="color:var(--text-gray);font-size:0.85rem;margin-top:0.5rem;">Sube el pasaje en Documentos para ver los detalles aquí.</div>
+                `;
+            }
+
+        } else if (t.tipo === 'crucero') {
+            // Datos base del wizard (v3_cruceros)
+            const crucero = viajeData.crucero;
+
+            // Complementar con documento de crucero si existe
+            const docCrucero = buscarDocsPorTipo('crucero')[0];
+            tieneDocumento = !!docCrucero;
+            const mc = docCrucero?.metadata || {};
+
+            const nombreBarco    = crucero?.nombre_barco    || mc.barco    || 'Por definir';
+            const naviera        = crucero?.naviera         || mc.naviera  || 'Por definir';
+            const cabina         = crucero?.numero_cabina   || 'Por asignar';
+            const reserva        = mc.reserva               || detalles.numero_reserva || null;
+            const embarque       = crucero?.fecha_embarque
+                                    ? formatearFechaLocal(crucero.fecha_embarque)
+                                    : (mc.embarque ? formatearDatetime(mc.embarque) : 'Por definir');
+            const desembarque    = crucero?.fecha_desembarque
+                                    ? formatearFechaLocal(crucero.fecha_desembarque)
+                                    : 'Por definir';
+            const tieneArchivoCrucero = docCrucero?.archivo_url && docCrucero.archivo_url !== '';
+            const cruceroDocId = docCrucero?.id || '';
+
             contenidoDetalle = `
-                <strong>Aerolínea:</strong> ${detalles.aerolinea || 'Por definir'}<br>
-                <strong>Número de vuelo:</strong> ${detalles.numero_vuelo || 'Por definir'}<br>
-                <strong>Ruta:</strong> ${detalles.origen || '?'} → ${detalles.destino || '?'}<br>
-                <strong>Fecha:</strong> ${detalles.fecha ? formatearFechaLocal(detalles.fecha) : 'Por definir'} 
-                ${detalles.hora ? `a las ${detalles.hora}` : ''}
+                ${tieneArchivoCrucero ? `
+                    <div style="margin-bottom:8px;">
+                        <button
+                            onclick="abrirVisorDashboard('${cruceroDocId.replace(/'/g, "\\'")}')"
+                            title="Ver documento del crucero"
+                            style="background:linear-gradient(135deg,#0ea5e9,#6366f1);color:#fff;border:none;border-radius:8px;padding:4px 12px;font-size:0.8rem;cursor:pointer;display:inline-flex;align-items:center;gap:4px;">
+                            🚢 Ver documento
+                        </button>
+                    </div>` : ''}
+                <div>🚢 <strong>Barco:</strong> ${nombreBarco}</div>
+                <div>🏢 <strong>Naviera:</strong> ${naviera}</div>
+                <div>🛏️ <strong>Cabina:</strong> ${cabina}</div>
+                <div>⚓ <strong>Embarque:</strong> ${embarque}</div>
+                <div>🏁 <strong>Desembarque:</strong> ${desembarque}</div>
+                ${reserva ? `<div>🔖 <strong>Reserva:</strong> ${reserva}</div>` : ''}
             `;
-        } else if (t.tipo === 'crucero' && viajeData.crucero) {
-            contenidoDetalle = `
-                <strong>Barco:</strong> ${viajeData.crucero.nombre_barco || 'Por definir'}<br>
-                <strong>Naviera:</strong> ${viajeData.crucero.naviera || 'Por definir'}<br>
-                <strong>Cabina:</strong> ${viajeData.crucero.numero_cabina || 'Por asignar'}<br>
-                <strong>Embarque:</strong> ${viajeData.crucero.fecha_embarque ? formatearFechaLocal(viajeData.crucero.fecha_embarque) : 'Por definir'}<br>
-                <strong>Desembarque:</strong> ${viajeData.crucero.fecha_desembarque ? formatearFechaLocal(viajeData.crucero.fecha_desembarque) : 'Por definir'}
-            `;
+
         } else {
+            // Otros transportes: bus, auto, tren, etc.
+            const tiposDoc = t.tipo === 'bus' ? ['pasaje_bus'] : ['otro'];
+            const docOtro = buscarDocsPorTipo(...tiposDoc)[0];
+            tieneDocumento = !!docOtro || !!t.archivo_url;
+            const mo = docOtro?.metadata || {};
+
             contenidoDetalle = `
-                <strong>Tipo:</strong> ${t.tipo.charAt(0).toUpperCase() + t.tipo.slice(1)}<br>
-                ${detalles.empresa ? `<strong>Empresa:</strong> ${detalles.empresa}<br>` : ''}
-                ${detalles.numero_reserva ? `<strong>Reserva:</strong> ${detalles.numero_reserva}<br>` : ''}
-                ${detalles.fecha ? `<strong>Fecha:</strong> ${formatearFechaLocal(detalles.fecha)}` : 'Detalles por completar'}
+                <div><strong>Tipo:</strong> ${t.tipo.charAt(0).toUpperCase() + t.tipo.slice(1)}</div>
+                ${(detalles.empresa || mo.empresa) ? `<div><strong>Empresa:</strong> ${detalles.empresa || mo.empresa}</div>` : ''}
+                ${(detalles.numero_reserva || mo.reserva) ? `<div><strong>Reserva:</strong> ${detalles.numero_reserva || mo.reserva}</div>` : ''}
+                ${(mo.origen && mo.destino) ? `<div><strong>Ruta:</strong> ${mo.origen} → ${mo.destino}</div>` : ''}
+                ${(detalles.fecha || mo.fecha) ? `<div><strong>Fecha:</strong> ${formatearFechaLocal(detalles.fecha || mo.fecha)}</div>` : (!detalles.empresa && !mo.empresa ? '<div style="color:var(--text-gray);font-size:0.85rem;">Detalles por completar</div>' : '')}
             `;
         }
 
@@ -775,4 +870,86 @@ window.addEventListener('beforeunload', () => {
     if (countdownInterval) {
         clearInterval(countdownInterval);
     }
+});
+
+// ============================================
+// VISOR DE DOCUMENTOS DESDE EL DASHBOARD
+// ============================================
+function abrirVisorDashboard(docId) {
+    const doc = (viajeData.documentos || []).find(d => d.id === docId);
+    if (!doc || !doc.archivo_url) return;
+
+    const TIPO_CONFIG_LOCAL = {
+        pasaje_avion:     { label: 'Pasaje de Avión',      icon: '✈️'  },
+        tarjeta_embarque: { label: 'Tarjeta de Embarque',  icon: '🎫'  },
+        pasaje_bus:       { label: 'Pasaje de Bus',        icon: '🚌'  },
+        crucero:          { label: 'Doc. Crucero',         icon: '🚢'  },
+        alojamiento:      { label: 'Reserva Alojamiento',  icon: '🏨'  },
+        seguro:           { label: 'Seguro de Viaje',      icon: '🛡️' },
+        entrada:          { label: 'Boleto / Entrada',     icon: '🎟️' },
+        otro:             { label: 'Otro',                 icon: '📄'  }
+    };
+
+    const cfg = TIPO_CONFIG_LOCAL[doc.tipo] || TIPO_CONFIG_LOCAL.otro;
+    document.getElementById('visorDashboardTitulo').textContent = `${cfg.icon} ${doc.nombre}`;
+
+    const btnDescargar = document.getElementById('visorDashboardDescargar');
+    btnDescargar.href = doc.archivo_url;
+    btnDescargar.download = doc.nombre;
+
+    const btnExterno = document.getElementById('visorDashboardExterno');
+    btnExterno.href = doc.archivo_url;
+
+    const content = document.getElementById('visorDashboardContent');
+    const esImagen = /\.(jpg|jpeg|png|gif|webp)(\?|$)/i.test(doc.archivo_url);
+    const esPDF    = /\.pdf(\?|$)/i.test(doc.archivo_url) || doc.archivo_url.includes('.pdf');
+
+    if (esImagen) {
+        content.innerHTML = `
+            <img src="${doc.archivo_url}" alt="${doc.nombre}"
+                 style="max-width:100%;max-height:70vh;border-radius:8px;display:block;margin:0 auto;">`;
+    } else if (esPDF) {
+        const googleViewerUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(doc.archivo_url)}&embedded=true`;
+        content.innerHTML = `
+            <div style="width:100%;height:70vh;position:relative;">
+                <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;color:#64748b;" id="visorDashboardLoading">
+                    <div style="font-size:2.5rem;margin-bottom:8px;">⏳</div>
+                    <p style="font-size:0.9rem;">Cargando PDF...</p>
+                </div>
+                <iframe
+                    src="${googleViewerUrl}"
+                    style="width:100%;height:100%;border:none;border-radius:8px;"
+                    allowfullscreen
+                    onload="const l=document.getElementById('visorDashboardLoading');if(l)l.style.display='none';"
+                ></iframe>
+            </div>`;
+    } else {
+        content.innerHTML = `
+            <div style="text-align:center;color:#94a3b8;padding:60px 20px;">
+                <div style="font-size:5rem;margin-bottom:16px;">📄</div>
+                <p style="font-size:1rem;margin-bottom:24px;">Vista previa no disponible para este tipo de archivo</p>
+                <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+                    <a href="${doc.archivo_url}" download="${doc.nombre}"
+                       style="background:#6366f1;color:#fff;padding:10px 20px;border-radius:8px;text-decoration:none;font-weight:600;">⬇️ Descargar</a>
+                    <a href="${doc.archivo_url}" target="_blank" rel="noopener"
+                       style="background:#0f172a;color:#fff;padding:10px 20px;border-radius:8px;text-decoration:none;font-weight:600;">↗️ Abrir en nueva pestaña</a>
+                </div>
+            </div>`;
+    }
+
+    const modal = document.getElementById('modalVisorDashboard');
+    modal.style.display = 'flex';
+    // Cerrar al hacer click fuera del contenedor
+    modal.onclick = (e) => { if (e.target === modal) cerrarVisorDashboard(); };
+}
+
+function cerrarVisorDashboard() {
+    const modal = document.getElementById('modalVisorDashboard');
+    modal.style.display = 'none';
+    document.getElementById('visorDashboardContent').innerHTML = '';
+}
+
+// Cerrar con tecla Escape
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') cerrarVisorDashboard();
 });
