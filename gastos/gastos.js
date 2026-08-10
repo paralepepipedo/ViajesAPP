@@ -46,6 +46,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         cargarPresupuestos(),
         cargarPagosDeudas()
     ]);
+    renderizarTablaDeudas();
 });
 
 // ============================================
@@ -258,7 +259,7 @@ async function cargarDatosViaje() {
         if (resDestinos.error) throw resDestinos.error;
         if (resParticipantes.error) throw resParticipantes.error;
 
-        destinos     = resDestinos.data     || [];
+        destinos = resDestinos.data || [];
         participantes = resParticipantes.data || [];
 
         llenarSelectoresParticipantes();
@@ -366,7 +367,6 @@ async function cargarGastos() {
         } else {
             renderizarResumen();
             filtrarGastos();
-            renderizarTablaDeudas();
             document.getElementById('deudasResumenSection').style.display = 'block';
         }
 
@@ -2524,16 +2524,16 @@ function guardarEnColaOffline(tipo, accion, datos, idExistente = null) {
     try {
         const cola = JSON.parse(localStorage.getItem(GASTOS_OFFLINE_KEY) || '[]');
         cola.push({
-            id:          'q_' + Date.now(),
+            id: 'q_' + Date.now(),
             tipo,        // 'gasto' | 'actividad'
             accion,      // 'crear' | 'editar'
             datos,
             idExistente,
-            timestamp:   Date.now()
+            timestamp: Date.now()
         });
         localStorage.setItem(GASTOS_OFFLINE_KEY, JSON.stringify(cola));
         console.log(`[Offline] ${accion} ${tipo} encolado. Total pendientes: ${cola.length}`);
-    } catch(e) { console.warn('Error guardando en cola offline:', e); }
+    } catch (e) { console.warn('Error guardando en cola offline:', e); }
 }
 
 async function sincronizarColaOffline() {
@@ -2555,7 +2555,7 @@ async function sincronizarColaOffline() {
                     if (error) throw error;
                 }
             }
-        } catch(e) {
+        } catch (e) {
             console.warn('[Offline] Error sincronizando item:', e);
             errores.push(item);
         }

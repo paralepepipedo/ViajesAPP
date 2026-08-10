@@ -77,16 +77,16 @@ async function cargarDashboard() {
 
         const resultados = await Promise.all(queries);
 
-        viajeData.destinos      = resultados[0].data || [];
+        viajeData.destinos = resultados[0].data || [];
         viajeData.participantes = resultados[1].data || [];
-        viajeData.transportes   = resultados[2].data || [];
-        viajeData.gastos        = resultados[3].data || [];
-        viajeData.itinerario    = resultados[4].data || [];
-        viajeData.documentos    = resultados[5].data || [];
+        viajeData.transportes = resultados[2].data || [];
+        viajeData.gastos = resultados[3].data || [];
+        viajeData.itinerario = resultados[4].data || [];
+        viajeData.documentos = resultados[5].data || [];
         // Tomar el primer crucero del array (no .single() para evitar errores)
-        viajeData.crucero       = (resultados[6].data && resultados[6].data.length > 0)
-                                    ? resultados[6].data[0]
-                                    : null;
+        viajeData.crucero = (resultados[6].data && resultados[6].data.length > 0)
+            ? resultados[6].data[0]
+            : null;
 
         // Guardar en cache localStorage
         try {
@@ -94,7 +94,7 @@ async function cargarDashboard() {
             const idx = cacheActual.findIndex(v => v.link_unico === viajeData.link_unico);
             if (idx >= 0) cacheActual[idx] = viajeData; else cacheActual.push(viajeData);
             localStorage.setItem('viajes_cache_v3', JSON.stringify(cacheActual));
-        } catch(e) { console.warn('Cache write error:', e); }
+        } catch (e) { console.warn('Cache write error:', e); }
 
         // Renderizar dashboard
         renderizarHero();
@@ -133,7 +133,7 @@ async function cargarDashboard() {
                 mostrarNotificacion('Error cargando el viaje', 'error');
                 setTimeout(() => { window.location.href = '../index.html'; }, 2000);
             }
-        } catch(e) {
+        } catch (e) {
             mostrarNotificacion('Error cargando el viaje', 'error');
             setTimeout(() => { window.location.href = '../index.html'; }, 2000);
         }
@@ -506,7 +506,7 @@ function renderizarTransportes() {
         const dt = new Date(datetimeStr);
         if (isNaN(dt)) return null;
         const fecha = dt.toLocaleDateString('es-CL', { day: '2-digit', month: 'short', year: 'numeric' });
-        const hora  = dt.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', hour12: false });
+        const hora = dt.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', hour12: false });
         return `${fecha} ${hora}`;
     }
 
@@ -571,16 +571,16 @@ function renderizarTransportes() {
             tieneDocumento = !!docCrucero;
             const mc = docCrucero?.metadata || {};
 
-            const nombreBarco    = crucero?.nombre_barco    || mc.barco    || 'Por definir';
-            const naviera        = crucero?.naviera         || mc.naviera  || 'Por definir';
-            const cabina         = crucero?.numero_cabina   || 'Por asignar';
-            const reserva        = mc.reserva               || detalles.numero_reserva || null;
-            const embarque       = crucero?.fecha_embarque
-                                    ? formatearFechaLocal(crucero.fecha_embarque)
-                                    : (mc.embarque ? formatearDatetime(mc.embarque) : 'Por definir');
-            const desembarque    = crucero?.fecha_desembarque
-                                    ? formatearFechaLocal(crucero.fecha_desembarque)
-                                    : 'Por definir';
+            const nombreBarco = crucero?.nombre_barco || mc.barco || 'Por definir';
+            const naviera = crucero?.naviera || mc.naviera || 'Por definir';
+            const cabina = crucero?.numero_cabina || 'Por asignar';
+            const reserva = mc.reserva || detalles.numero_reserva || null;
+            const embarque = crucero?.fecha_embarque
+                ? formatearFechaLocal(crucero.fecha_embarque)
+                : (mc.embarque ? formatearDatetime(mc.embarque) : 'Por definir');
+            const desembarque = crucero?.fecha_desembarque
+                ? formatearFechaLocal(crucero.fecha_desembarque)
+                : 'Por definir';
             const tieneArchivoCrucero = docCrucero?.archivo_url && docCrucero.archivo_url !== '';
             const cruceroDocId = docCrucero?.id || '';
 
@@ -880,14 +880,14 @@ function abrirVisorDashboard(docId) {
     if (!doc || !doc.archivo_url) return;
 
     const TIPO_CONFIG_LOCAL = {
-        pasaje_avion:     { label: 'Pasaje de Avión',      icon: '✈️'  },
-        tarjeta_embarque: { label: 'Tarjeta de Embarque',  icon: '🎫'  },
-        pasaje_bus:       { label: 'Pasaje de Bus',        icon: '🚌'  },
-        crucero:          { label: 'Doc. Crucero',         icon: '🚢'  },
-        alojamiento:      { label: 'Reserva Alojamiento',  icon: '🏨'  },
-        seguro:           { label: 'Seguro de Viaje',      icon: '🛡️' },
-        entrada:          { label: 'Boleto / Entrada',     icon: '🎟️' },
-        otro:             { label: 'Otro',                 icon: '📄'  }
+        pasaje_avion: { label: 'Pasaje de Avión', icon: '✈️' },
+        tarjeta_embarque: { label: 'Tarjeta de Embarque', icon: '🎫' },
+        pasaje_bus: { label: 'Pasaje de Bus', icon: '🚌' },
+        crucero: { label: 'Doc. Crucero', icon: '🚢' },
+        alojamiento: { label: 'Reserva Alojamiento', icon: '🏨' },
+        seguro: { label: 'Seguro de Viaje', icon: '🛡️' },
+        entrada: { label: 'Boleto / Entrada', icon: '🎟️' },
+        otro: { label: 'Otro', icon: '📄' }
     };
 
     const cfg = TIPO_CONFIG_LOCAL[doc.tipo] || TIPO_CONFIG_LOCAL.otro;
@@ -902,7 +902,7 @@ function abrirVisorDashboard(docId) {
 
     const content = document.getElementById('visorDashboardContent');
     const esImagen = /\.(jpg|jpeg|png|gif|webp)(\?|$)/i.test(doc.archivo_url);
-    const esPDF    = /\.pdf(\?|$)/i.test(doc.archivo_url) || doc.archivo_url.includes('.pdf');
+    const esPDF = /\.pdf(\?|$)/i.test(doc.archivo_url) || doc.archivo_url.includes('.pdf');
 
     if (esImagen) {
         content.innerHTML = `
